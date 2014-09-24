@@ -49,6 +49,7 @@ class ASR:
         self.corpus = corpus
         self.label = label
         self.target = target
+        SYS().mkdir(target)
         self.X = dict({})
         self.setname()
         self.time = 0

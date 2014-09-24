@@ -4,7 +4,9 @@ import shelve
 #import pySFX
 #import pyEXT
 
-from zrst import *
+from zrst import pyASR
+from zrst import pySFX
+from zrst import pyEXT
 import os
 
 ### set paths ###
