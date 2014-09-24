@@ -1,0 +1,1 @@
+HList.exe -C hcopy_scale.cfg -i 39 ../../../Corpus_5034wav/N200108011200-01-01.wav > feature_scale.txt

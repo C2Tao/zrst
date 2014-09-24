@@ -1,0 +1,21 @@
+x = 'IDump_5034wav_300'
+x = 'IDump_5034wav_50'
+x = 'IDump_timit_train_300'
+x = 'IDump_timit_train_50'
+x = 'IDump_timit_test_300'
+x = 'IDump_timit_test_50'
+x = 'IDump_timit_train_300_dbn_hac_mess'
+x = 'IDump_timit_train_300_dbn_hac_mess'
+x = 'IDump_timit_train_200'
+x = 'IDump_timit_train_100'
+x = 'IDump_timit_test_200'
+x = 'IDump_timit_test_100'
+x = 'IDump_5034wav_100'
+I = open(x+'.txt')
+O = open(x+'_flatten.txt','w')
+for line in I:
+	if 'wav' in line:
+		O.write(line)
+	else:
+		for p in line.strip('\n').split():
+			if p: O.write(p+'\n')

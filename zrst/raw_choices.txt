@@ -1,0 +1,432 @@
+ 
+    
+def parse_pattern(input_dictionary, input_mlf, output_dictionary):
+    
+    count_dict = parse_pattern_load_count(input_mlf,input_dictionary)
+    tot_con, avg_con = 0, 0
+    for phrase in count_dict:
+        tot_con += count_dict[phrase]
+        avg_con += 1
+    thr_con = tot_con/avg_con
+    tlines = open('temp_line.txt').readlines()
+
+    def find_strength(line):
+        strength = [0 for l in line]
+        for bond in [2,3,4]:
+            for i in range(len(line)-bond+1):
+                for j in range(bond-1):
+                    try:    strength[i] += (count_dict[tuple(line[i-j:i+bond-j])]-1)
+                    except: pass
+        return strength
+    def add_phrase(phrase):
+        if phrase in p2w: return
+        word = ''
+        for phone in phrase: 
+            word += str(phone)
+        w2p[word] = phrase
+        p2w[phrase] = word
+        wdl.append(word) 
+    
+    tot_str, avg_str = 0, 0    
+    for line in tlines:
+        line = line.strip('\n').split()[1:-1]
+        strength = find_strength(line)
+        tot_str += sum(strength)
+        avg_str += len(strength)                
+        #print strength
+    thr_str = tot_str/avg_str
+    
+    
+    w2p = dict({})
+    p2w = dict({})
+    wdl = []
+
+    for line in tlines:
+        line = line.strip('\n').split()[1:-1]
+        strength = find_strength(line) 
+        seq = [line[0],]
+        for i in range(len(line)):
+            if strength[i] >= thr_str:
+                seq.append(line[i])
+            else:
+                if tuple(seq) in count_dict:
+                    if count_dict[tuple(seq)] > thr_con:
+                        add_phrase(tuple(seq))
+                seq = [line[i],]
+        
+    print tot_str, avg_str, thr_str
+    print tot_con, avg_con, thr_con
+    A = HTK()
+    A.word2pone = w2p
+    A.pone2word = p2w
+    A.wordList = wdl
+    A.writeDCT(output_dictionary,['sil', 'sp'])    
+	
+	
+#def parse_pattern(input_dictionary, input_mlf, output_dictionary):
+def parse_pattern_count(input_dictionary, input_mlf, output_dictionary):
+
+    temp_count = 'temp_count.txt'
+    temp_line = 'temp_line.txt'
+    N = 100
+
+    HTK().readMLF(input_mlf,['sil','sp','<s>','</s>']).writeMLF(temp_line,['lm'])
+    SYS().cygwin('ngram-count -text {} -write {} -order {} -vocab {}'.format(
+        temp_line, temp_count, str(N), input_dictionary
+    ))
+
+    S = open(temp_count).readlines()
+
+    #text = [t.rstrip(\n),split() for t in open(temp_count).readlines()]
+    #text = [t.rstrip('\n').split() for t in S]
+    total_count = 0
+    for raw_line in S:
+        line= raw_line.rstrip('\n').split()
+        total_count += int(line [-1])
+    f_threshold = float(total_count)/len(S)
+
+
+    #B = open(temp_phrase,'w')
+    count_dict = dict({})
+    for raw_line in S:
+        line= raw_line.rstrip('\n').split()
+        if int(line [-1]) < f_threshold: continue
+        if '<s>' in line or '</s>' in line: continue
+        phrase = []
+        for i in range(len(line)-1):
+            phrase.append(line[i])
+        phrase = tuple(phrase)
+        #B.write(raw_line)
+        count_dict[phrase] = int(line[-1]) 
+    #print len(count_dict)
+
+    cond_dict=({})
+    for phrase in count_dict:
+        try:    cond_dict[phrase[:-1]].append(count_dict[phrase])
+        except: cond_dict[phrase[:-1]] = [count_dict[phrase]]
+    #print len(cond_dict)
+        
+    def entropy(v):
+        s = sum(v)
+        v = [double(e)/s for e in v]
+        #print v
+        H=0
+        for e in v:
+            H -= log2(e ** e)
+        return H
+
+    total_entropy = [0 for i in range(N)]
+    total_count = [0 for i in range(N)]
+    e_threshold = [0 for i in range(N)]
+    for phrase in cond_dict:    
+        total_entropy[len(phrase)] += 2** entropy (cond_dict[phrase])
+        total_count[len(phrase)] += 1
+
+    for i in range(N):
+        if total_count[i] ==0: continue
+        #print double(total_entropy[i])/total_count[i]
+        e_threshold[i] = log2(double(total_entropy[i])/total_count[i])
+        #e_threshold[i] = double(total_entropy[i])/total_count[i]
+        
+        
+        
+    occurrence_count = dict({})
+    accumulated_count = dict({})
+    for word in count_dict:
+        i = word.count('p')
+        try:    occurrence_count[i] += 1
+        except: occurrence_count[i] = 1
+        try:    accumulated_count[i] += count_dict[word]
+        except: accumulated_count[i] = count_dict[word]
+    #E = open(temp_entropy,'w')
+    w2p = dict({})
+    p2w = dict({})
+    wdl = []
+    for phrase in count_dict:
+        i = phrase.count('p')
+        if count_dict[phrase] > 0.1 * accumulated_count[i]/occurrence_count[i] or i == 1:
+            word = ''
+            for phone in phrase: 
+                word += str(phone)
+            if word == '': continue
+            w2p[word] = phrase
+            p2w[phrase] = word
+            wdl.append(word)
+    A = HTK()
+    A.word2pone = w2p
+    A.pone2word = p2w
+    A.wordList = wdl
+    A.writeDCT(output_dictionary,['sil', 'sp'])   
+
+def parse_pattern_old(input_dictionary, input_mlf, output_dictionary):
+    #input_dictionary = 'dictionary.txt'
+    #input_mlf = 'result.mlf'
+    #output_dictionary = 'here.txt'
+    #output_mlf = 'parsed.mlf'
+
+    temp_count = 'temp_count.txt'
+    #temp_phrase = 'temp_phrase.txt'
+    #temp_entropy = 'temp_entropy.txt'
+    temp_line = 'temp_line.txt'
+    N = 100
+
+
+
+    HTK().readMLF(input_mlf,['sil','sp','<s>','</s>']).writeMLF(temp_line,['lm'])
+    SYS().cygwin('ngram-count -text {} -write {} -order {} -vocab {}'.format(
+        temp_line, temp_count, str(N), input_dictionary
+    ))
+
+    S = open(temp_count).readlines()
+
+    #text = [t.rstrip(\n),split() for t in open(temp_count).readlines()]
+    #text = [t.rstrip('\n').split() for t in S]
+    total_count = 0
+    for raw_line in S:
+        line= raw_line.rstrip('\n').split()
+        total_count += int(line [-1])
+    f_threshold = float(total_count)/len(S)
+
+
+    #B = open(temp_phrase,'w')
+    count_dict = dict({})
+    for raw_line in S:
+        line= raw_line.rstrip('\n').split()
+        if int(line [-1]) < f_threshold: continue
+        if '<s>' in line or '</s>' in line: continue
+        phrase = []
+        for i in range(len(line)-1):
+            phrase.append(line[i])
+        phrase = tuple(phrase)
+        #B.write(raw_line)
+        count_dict[phrase] = int(line[-1]) 
+    #print len(count_dict)
+
+    cond_dict=({})
+    for phrase in count_dict:
+        try:    cond_dict[phrase[:-1]].append(count_dict[phrase])
+        except: cond_dict[phrase[:-1]] = [count_dict[phrase]]
+    #print len(cond_dict)
+        
+    def entropy(v):
+        s = sum(v)
+        v = [double(e)/s for e in v]
+        #print v
+        H=0
+        for e in v:
+            H -= log2(e ** e)
+        return H
+
+    total_entropy = [0 for i in range(N)]
+    total_count = [0 for i in range(N)]
+    e_threshold = [0 for i in range(N)]
+    for phrase in cond_dict:    
+        total_entropy[len(phrase)] += 2** entropy (cond_dict[phrase])
+        total_count[len(phrase)] += 1
+
+    for i in range(N):
+        if total_count[i] ==0: continue
+        #print double(total_entropy[i])/total_count[i]
+        e_threshold[i] = log2(double(total_entropy[i])/total_count[i])
+        #e_threshold[i] = double(total_entropy[i])/total_count[i]
+
+    #E = open(temp_entropy,'w')
+    w2p = dict({})
+    p2w = dict({})
+    wdl = []
+    for phrase in cond_dict:
+        #if entropy(cond_dict[phrase]) > log2(e_threshold[len(phrase)]) or len(phrase)==1:
+        #if entropy(cond_dict[phrase]) > e_threshold[len(phrase)] or len(phrase)==1:
+        #if (entropy(cond_dict[phrase]) > e_threshold[len(phrase)+1] and len(phrase)!=0) or len(phrase)==1:
+        if entropy(cond_dict[phrase]) > e_threshold[len(phrase)]/2:
+            #E.write(str(phrase)+' '+str(2 ** entropy(cond_dict[phrase]))+ '\n')
+            word = ''
+            for phone in phrase: 
+                word += str(phone)
+            if word == '': continue
+            w2p[word] = phrase
+            p2w[phrase] = word
+            wdl.append(word)
+    A = HTK()
+    A.word2pone = w2p
+    A.pone2word = p2w
+    A.wordList = wdl
+    A.writeDCT(output_dictionary,['sil', 'sp'])
+    
+def parse_pattern_Y(input_dictionary, input_mlf, output_dictionary):
+    temp_count = 'temp_count.txt'
+    temp_line = 'temp_line.txt'
+    N = 100
+    HTK().readMLF(input_mlf,['sil','sp','<s>','</s>']).writeMLF(temp_line,['lm'])
+    SYS().cygwin('ngram-count -text {} -write {} -order {} -vocab {}'.format(
+        temp_line, temp_count, str(N), input_dictionary
+    ))
+    S = open(temp_count).readlines()
+    total_count = 0
+    for raw_line in S:
+        line= raw_line.rstrip('\n').split()
+        total_count += int(line [-1])
+    f_threshold = float(total_count)/len(S)
+    count_dict = dict({})
+    for raw_line in S:
+        line= raw_line.rstrip('\n').split()
+        if int(line [-1]) < f_threshold: continue
+        if '<s>' in line or '</s>' in line: continue
+        phrase = []
+        for i in range(len(line)-1):
+            phrase.append(line[i])
+        phrase = tuple(phrase)
+        count_dict[phrase] = int(line[-1]) 
+
+    cond_dict_tail=({})
+    cond_dict_head=({})
+    for phrase in count_dict:
+        try:    cond_dict_tail[phrase[:-1]].append(count_dict[phrase])
+        except: cond_dict_tail[phrase[:-1]] = [count_dict[phrase]]
+        try:    cond_dict_head[phrase[1:]].append(count_dict[phrase])
+        except: cond_dict_head[phrase[1:]] = [count_dict[phrase]]
+        
+    def entropy(v):
+        s = sum(v)
+        v = [double(e)/s for e in v]
+        H=0
+        for e in v:
+            H -= log2(e ** e)
+        return H
+
+    total_entropy_head = [0 for i in range(N)]
+    total_entropy_tail = [0 for i in range(N)]
+    total_count = [0 for i in range(N)]
+    e_threshold_head = [0 for i in range(N)]
+    e_threshold_tail = [0 for i in range(N)]
+    for phrase in count_dict:    
+        if phrase not in cond_dict_tail or phrase not in cond_dict_head: continue
+        total_entropy_tail[len(phrase)] += 2** entropy (cond_dict_tail[phrase])
+        total_entropy_head[len(phrase)] += 2** entropy (cond_dict_head[phrase])
+        total_count[len(phrase)] += 1
+
+    for i in range(N):
+        if total_count[i] ==0: continue
+        #pre 2012-11-11
+        #e_threshold_head[i] = log2(double(total_entropy_head[i])/total_count[i])
+        #e_threshold_tail[i] = log2(double(total_entropy_tail[i])/total_count[i])
+        e_threshold_head[i] = log2(double(total_entropy_head[i])/total_count[i]/i)
+        e_threshold_tail[i] = log2(double(total_entropy_tail[i])/total_count[i]/i)
+
+    #E = open(temp_entropy,'w')
+    w2p = dict({})
+    p2w = dict({})
+    wdl = []
+    for phrase in count_dict:
+        if phrase not in cond_dict_tail or phrase not in cond_dict_head: continue
+        #pre 2012-11-11
+        #if (entropy(cond_dict_head[phrase]) > e_threshold_head[len(phrase)]*0.7 \
+        #and entropy(cond_dict_tail[phrase]) > e_threshold_tail[len(phrase)]*0.7):
+        if (entropy(cond_dict_head[phrase]) > e_threshold_head[len(phrase)]*0.5 \
+        and entropy(cond_dict_tail[phrase]) > e_threshold_tail[len(phrase)]*0.5)\
+        or len(phrase)==1:
+            word = ''
+            for phone in phrase: 
+                word += str(phone)
+            if word == '': continue
+            w2p[word] = phrase
+            p2w[phrase] = word
+            wdl.append(word)
+    A = HTK()
+    A.word2pone = w2p
+    A.pone2word = p2w
+    A.wordList = wdl
+    A.writeDCT(output_dictionary,['sil', 'sp'])
+    
+def parse_pattern(input_dictionary, input_mlf, output_dictionary):
+    #input_dictionary = 'dictionary.txt'
+    #input_mlf = 'result.mlf'
+    #output_dictionary = 'here.txt'
+    #output_mlf = 'parsed.mlf'
+
+    temp_count = 'temp_count.txt'
+    #temp_phrase = 'temp_phrase.txt'
+    #temp_entropy = 'temp_entropy.txt'
+    temp_line = 'temp_line.txt'
+    N = 100
+
+
+
+    HTK().readMLF(input_mlf,['sil','sp','<s>','</s>']).writeMLF(temp_line,['lm'])
+    SYS().cygwin('ngram-count -text {} -write {} -order {} -vocab {}'.format(
+        temp_line, temp_count, str(N), input_dictionary
+    ))
+
+    S = open(temp_count).readlines()
+
+    #text = [t.rstrip(\n),split() for t in open(temp_count).readlines()]
+    #text = [t.rstrip('\n').split() for t in S]
+    total_count = 0
+    for raw_line in S:
+        line= raw_line.rstrip('\n').split()
+        total_count += int(line [-1])
+    f_threshold = float(total_count)/len(S)
+
+
+    #B = open(temp_phrase,'w')
+    count_dict = dict({})
+    for raw_line in S:
+        line= raw_line.rstrip('\n').split()
+        if int(line [-1]) < f_threshold: continue
+        if '<s>' in line or '</s>' in line: continue
+        phrase = []
+        for i in range(len(line)-1):
+            phrase.append(line[i])
+        phrase = tuple(phrase)
+        #B.write(raw_line)
+        count_dict[phrase] = int(line[-1]) 
+    #print len(count_dict)
+
+    cond_dict=({})
+    for phrase in count_dict:
+        try:    cond_dict[phrase[:-1]].append(count_dict[phrase])
+        except: cond_dict[phrase[:-1]] = [count_dict[phrase]]
+    #print len(cond_dict)
+        
+    def entropy(v):
+        s = sum(v)
+        v = [double(e)/s for e in v]
+        #print v
+        H=0
+        for e in v:
+            H -= log2(e ** e)
+        return H
+
+    total_entropy = [0 for i in range(N)]
+    total_count = [0 for i in range(N)]
+    e_threshold = [0 for i in range(N)]
+    for phrase in cond_dict:    
+        total_entropy[len(phrase)] += 2** entropy (cond_dict[phrase])
+        total_count[len(phrase)] += 1
+
+    for i in range(N):
+        if total_count[i] ==0: continue
+        #print double(total_entropy[i])/total_count[i]
+        e_threshold[i] = log2(double(total_entropy[i])/total_count[i])
+        #e_threshold[i] = double(total_entropy[i])/total_count[i]
+
+    #E = open(temp_entropy,'w')
+    w2p = dict({})
+    p2w = dict({})
+    wdl = []
+    for phrase in cond_dict:
+        #if entropy(cond_dict[phrase]) > log2(e_threshold[len(phrase)]) or len(phrase)==1:
+        #if entropy(cond_dict[phrase]) > e_threshold[len(phrase)] or len(phrase)==1:
+        if (entropy(cond_dict[phrase]) > e_threshold[len(phrase)+1] and len(phrase)!=0) or len(phrase)==1:
+            #E.write(str(phrase)+' '+str(2 ** entropy(cond_dict[phrase]))+ '\n')
+            word = ''
+            for phone in phrase: 
+                word += str(phone)
+            w2p[word] = phrase
+            p2w[phrase] = word
+            wdl.append(word)
+    A = HTK()
+    A.word2pone = w2p
+    A.pone2word = p2w
+    A.wordList = wdl
+    A.writeDCT(output_dictionary,['sil', 'sp'])
