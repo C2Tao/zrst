@@ -3,12 +3,15 @@ import shelve
 import pyASR
 import pySFX
 import pyEXT
-
 #from zrst import pyASR
 #from zrst import pySFX
 #from zrst import pyEXT
 import os
 
+import util
+
+#######################phase1####################
+'''
 ### set paths ###
 drpbox_path = r'/home/c2tao/Dropbox/'
 corpus_path = drpbox_path + r'Semester 8.5/Corpus_5034wav/'
@@ -21,21 +24,7 @@ S_list = [3,7,13]
 M_list = [50,100,300]
 for S in S_list:
     for M in M_list: 
-
         config_name = '5034_'+str(M)+'_'+str(S)
-        '''
-        ### generate pattern ###
-        # declare object
-        A = pyASR.ASR(corpus = corpus_path, target = target_path, nState = S, dump = intial_path)
-        # initialize
-        A.initialization(comment = config_name)
-        # run for several iterations
-        A.iteration('a', config_name)
-        # increase gaussian count by 1
-        # always use 'a_keep' instead of 'a' when having more than 1 gaussian mixture
-        A.iteration('a_mix', config_name)
-        A.iteration('a_keep', config_name)
-        '''
         ### continue interrupted work ###
         # declare object
         A = pyASR.ASR(corpus = corpus_path, target = target_path, nState = S)
@@ -49,3 +38,67 @@ for S in S_list:
         A.iteration('a_keep',config_name)
         A.iteration('a_mix',config_name)
         A.iteration('a_keep',config_name)
+'''
+
+#######################phase2####################
+'''
+drpbox_path = r'/home/c2tao/Dropbox/'
+querie_path = drpbox_path + r'Semester 12.5/ICASSP 2015 Data/5034_query_active/'
+labels_path = drpbox_path + r'Semester 8.5/_readonly/homophone_time_missing.mlf'
+corpus_path = drpbox_path + r'Semester 8.5/Corpus_5034wav/'
+
+Q = util.STD(root = querie_path, label = labels_path, corpus = corpus_path)
+S_list = [3,7,13]
+M_list = [50,100,300]
+K_list = [36,40]
+for S in S_list:
+    for M in M_list: 
+        for K in K_list: 
+            p_name = str(K)+'_5034_'+str(M)+'_'+str(S)
+            A = pyASR.ASR(target = drpbox_path+r'Semester 9.5/'+p_name+'/')
+            Q.add_pattern(A,p_name)
+
+Q.query_init()
+Q.query_copy()
+Q.query_build()
+'''
+
+#######################phase 3 ##################################
+#fix_messy
+'''
+drpbox_path = r'/home/c2tao/Dropbox/'
+querie_path = drpbox_path + r'Semester 12.5/ICASSP 2015 Data/'
+messie_path = drpbox_path + r'Semester 8.5/_readonly/'
+pa = messie_path +  r'homophone_character.mlf'
+pb = messie_path + r'homophone_time_missing.mlf'
+pc = messie_path + r'querycontent_homo.txt'
+corpus_path = drpbox_path + r'Semester 8.5/Corpus_5034wav/'
+
+
+M = util.MLF(pa)
+N = util.MLF(pb)
+
+for w in M.wav_list:
+    if w not in N.wav_list:
+        print w
+with open(pc,'r') as pcf:
+    homo = pcf.readlines()
+query = map(lambda x: x.strip().replace(')(',' ')[1:-1].split(),homo)
+print query
+
+with open(querie_path+'q_list.txt','w') as f:
+    for q in query:
+        f.write(' '.join(q)+'\n')
+print N.tag_list[0]
+
+query = map(lambda x:x.strip().split(),open(querie_path+'q_list.txt','r').readlines())
+print query
+
+print query
+for q in query:
+    for i in range(len(M.wav_list)):
+        util.dtw(
+''')
+
+
+

@@ -1,5 +1,10 @@
 import numpy as np
+import os
 import struct
+import shutil
+import pyHMM
+import cPickle as pickle
+
 class DTW(object):
     def __init__(self, seq1, seq2, distance_func=None):
         '''
@@ -143,6 +148,40 @@ file = r'/home/c2tao/Dropbox/Semester 8.5/Corpus_5034wav_MFCC/N200108011200-01-0
 fmat = read_feature(file)
 matshow(fmat)
 show()
+'''
+
+
+def make_feature(in_folder, out_folder):
+    '''
+    in_folder: folder containing only wav files
+    out_folder: folder containing only mfc files
+    '''
+    
+    temp_cfg = open(out_folder+'/temp.cfg','w')
+    temp_scp = open(out_folder+'/temp.scp','w')
+
+    hcopy = """#Coding parameters\nSOURCEFORMAT=WAV\nTARGETKIND=MFCC_Z_E_D_A\nTARGETRATE=100000.0\nSAVECOMPRESSED=F\nSAVEWITHCRC=F\nWINDOWSIZE=320000.0\nUSEHAMMING=T\nPREEMCOEF=0.97\nNUMCHANS=26\nCEPLIFTER=22\nNUMCEPS=12\nENORMALIZE=T\nNATURALREADORDER=TRUE\nNATURALWRITEORDER=TRUE\n"""
+    temp_cfg.write(hcopy)
+    temp_cfg.close()
+
+    feature_files = []
+    for c in os.listdir(in_folder):
+        temp_scp.write('\"' + in_folder +'/'+ c +'\" \"'+ out_folder +'/'+ c[:-4] +'.mfc'+'\"'+ '\n')
+        feature_files +='\"' + out_folder +'/'+ c[:-4] +'.mfc'+'\"',
+    #temp_scp.close()
+    #with open (out_folder+'/temp.scp', "r") as myfile: 
+    #    feature_files = myfile.readlines()
+
+    os.system('HCopy -T 1 -C "{}"  -S "{}" '.format(out_folder+'/temp.cfg',out_folder+'/temp.scp'))
+
+    os.remove(out_folder+'/temp.cfg')
+    os.remove(out_folder+'/temp.scp')
+
+    return feature_files
+'''
+in_folder = r'/home/c2tao/Dropbox/Semester 8.5/Corpus_5034wav/'
+out_folder = r'/home/c2tao/Dropbox/Semester 12.5/ICASSP 2015 Data/5034 feature/'
+print make_feature(in_folder,out_folder)
 '''
 
 class MLF(object):
@@ -329,10 +368,96 @@ Q.compute()
 print Q.purity
 '''
 
-class Query(MLF):
-    def __init__(self,path,query_name,query_list = {}):
-        __init__(path,query_name)
-        self.MLF()
-
         
- 
+class STD(object):
+    def __init__(self, root, label, corpus = ''):
+        self.root = root
+        self.label = label
+        self.corpus = corpus
+        
+        self.pattern_list = []
+        self.pattern_dict = {}
+
+        self.feature_fold = root + r'/feature_file/'
+        self.feature_file = root + r'/feature_list.scp'
+        
+        self.distanc_fold = root + r'/pattern_distance/'
+        self.distanc_file = {}
+        self.kl = []
+
+        self.decoded_fold = root + r'/pattern_decoded/'
+        self.decoded_file = {}
+
+
+    def query_init(self):
+        try: os.mkdir(self.feature_fold)
+        except: True
+        try: os.mkdir(self.distanc_fold)
+        except: True
+        try: os.mkdir(self.decoded_fold)
+        except: True
+
+        if os.path.exists(self.feature_file): return  
+        files = util.make_feature(self.corpus,self.feature_fold)
+        with open(self.feature_file,'w') as myfile:
+            for f in files:
+                myfile.write( f +'\n')
+            myfile.close()
+
+    def query_build(self):
+        for p in self.pattern_list:
+            self.pattern_distanc(p)
+            self.pattern_decoded(p)
+
+    def add_pattern(self, pattern, pattern_name):
+        self.pattern_list += pattern_name,
+        self.pattern_dict[pattern_name] = pattern
+        self.decoded_file[pattern_name] = self.decoded_fold + '/' + pattern_name +'.mlf'
+        self.distanc_file[pattern_name] = self.distanc_fold + '/' + pattern_name +'.kl'
+
+    def pattern_decoded(self, pattern_name):
+        if os.path.exists(self.decoded_file[pattern_name]): return  
+        self.pattern_dict[pattern_name].external_testing(Q.feature_file,Q.decoded_file[pattern_name])
+
+    def pattern_distanc(self, pattern_name):
+        if os.path.exists(self.distanc_file[pattern_name]): return  
+        dm = {}
+        H = pyHMM.parse_hmm(self.pattern_dict[pattern_name].X['models_hmm'])
+        p_list = []
+        for p in H.keys():
+            if 's' not in p:
+                p_list.append(p)
+        
+        for i in p_list:
+            for j in p_list:
+                if (j,i) not in dm:
+                    dm[(i,j)] = pyHMM.kld_hmm(H[i],H[j])
+        pickle.dump(dm, open(self.distanc_file[pattern_name],'wb'))
+
+    def read_distance(self, pattern_name):
+        return pickle.load(open(self.decoded_file[pattern_name] ,'rb'))
+    
+    def query_copy(self):
+        '''
+        only use this function if the query corpus is exactly the same as the pattern corpus
+        this copies the result.mlf from the ASR objects
+        '''
+        for p in self.pattern_list:
+            shutil.copyfile(self.pattern_dict[p].X['result_mlf'],self.decoded_file[p])
+
+'''
+drpbox_path = r'/home/c2tao/Dropbox/'
+querie_path = drpbox_path + r'Semester 12.5/ICASSP 2015 Data/5034_query_active/'
+labels_path = drpbox_path + r'Semester 8.5/_readonly/homophone_time_missing.mlf'
+corpus_path = drpbox_path + r'Semester 8.5/Corpus_5034wav/'
+target_path1 = drpbox_path + r'Semester 9.5/40_5034_50_3/'
+target_path2 = drpbox_path + r'Semester 9.5/36_5034_50_3/'
+
+A = ASR(target = target_path1)
+B = ASR(target = target_path2)
+Q = STD(root = querie_path, label = labels_path, corpus = corpus_path)
+Q.add_pattern(A,'40_5034_50_3')
+Q.add_pattern(B,'36_5034_50_3')
+Q.query_init()
+Q.query_build()
+'''

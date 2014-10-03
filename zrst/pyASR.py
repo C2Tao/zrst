@@ -45,9 +45,9 @@ class SYS:
         return self
         
 class ASR:
-    def __init__(self, corpus = [], target = './', label = [], dump = 'IDump.txt', nState = 3, nFeature = 39,user_feature=False):
+    def __init__(self, corpus = '', target = './', label = [], dump = 'IDump.txt', nState = 3, nFeature = 39,user_feature=False):
         self.corpus = corpus
-        self.label = label
+        #self.label = label
         self.target = target
         SYS().mkdir(target)
         self.X = dict({})
@@ -95,6 +95,7 @@ class ASR:
         try:   shutil.rmtree(self.target)
         except:pass
         shutil.copytree(target, self.target)
+        
     def writeASR(self, target):
         try:   shutil.rmtree(target)
         except:pass
@@ -133,8 +134,8 @@ class ASR:
         open(self.X['addall_scp'], 'w').write(addmix_all)
         
         #reference
-        if self.label:
-            HTK().readMLF(self.X['refere_mlf'], ['sp', 'sil']).writeMLF(self.X['reflab_mlf'], dot3='.lab')
+        #if self.label:
+        #    HTK().readMLF(self.X['refere_mlf'], ['sp', 'sil']).writeMLF(self.X['reflab_mlf'], dot3='.lab')
     def build_proto(self):
         a_state = self.nState
         a_feature = self.nFeature
@@ -222,7 +223,7 @@ class ASR:
         self.X['wdnetp_dct'] = self.X['libray_dir'] + 'wordnet_sp.txt'
         
         #reference
-        self.X['refere_mlf'] = self.label
+        #self.X['refere_mlf'] = self.label
         self.X['transf_mlf'] = self.X['result_dir'] + 'transcription.mlf'
         self.X['reflab_mlf'] = self.X['result_dir'] + 'clean_reference.mlf'
         self.X['consis_txt'] = self.X['result_dir'] + 'ASR_accuracy.txt'
@@ -447,6 +448,7 @@ class ASR:
         W = open(self.X['evalua_txt'],'a')
         W.write('word_count ' + str(R.word_count())+'\n')
         W.write('word_entropy ' + str(R.entropy())+'\n')
+        '''
         if self.label:
             A = HTK().readMLF(self.X['refere_mlf'], ['sp', 'sil', '<s>', '</s>'])
             R.renameMLF2MLF(A)
@@ -458,6 +460,7 @@ class ASR:
             ))
             W.write('conditional_entropy ' + str(R.conditional_entropy(A))+'\n')
             W.write('joint_entropy ' + str(R.joint_entropy(A))+'\n')
+        '''
         # ms windows: t is wall seconds elapsed (floating point)
         # linux: t is CPU seconds elapsed (floating point)
         
@@ -571,7 +574,7 @@ class ASR:
             wav_list            , self.X['config_cfg'], 
             self.X['wdnetp_dct'], result_mlf,
             self.X['dictry_dct'], self.X['modelp_dct']
-        )) 
+        ))        
     def testing(self, optList = []):
         t0 = time.clock()
         
@@ -594,7 +597,6 @@ class ASR:
             self.X['result_mlf'], self.X['accrcy_txt']
         ))
         self.report(t0)
-        
        
     def am_setup(self):
         HTK()\
@@ -673,6 +675,7 @@ class ASR:
         if command == 'al_lat': self.al_lat()
         if command == 'x': self.x()
         if command == 'ax': self.ax()
+        if command == 'f': self.f()
         if do_slice:  self.slice()
         self.record_time()
         os.chdir(self.target)

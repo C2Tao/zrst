@@ -19,7 +19,7 @@ config_name = 'test_experiment'
 
 ### generate pattern ###
 # declare object
-A = pyASR.ASR(corpus = corpus_path, target = target_path, nState = 3, dump = intial_path)
+A = pyASR.ASR(corpus = corpus_path, target = target_path, dump = intial_path)
 # initialize
 A.initialization(comment = config_name)
 # run for several iterations
@@ -31,7 +31,7 @@ A.iteration('a_keep', config_name)
 
 ### continue interrupted work ###
 # declare object
-A = pyASR.ASR(corpus = corpus_path, target = target_path, nState = 3, dump = intial_path)
+A = pyASR.ASR(corpus = corpus_path, target = target_path, dump = intial_path)
 # select interrupted folder
 A.offset = 3
 A.readASR(str(A.offset)+'_'+config_name)
