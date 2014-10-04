@@ -1,6 +1,6 @@
 import os
 import shelve
-EXEroot = 'C:/Users/Tao/Dropbox/ULT_v0.0/'
+EXEroot = '/home/c2tao/Dropbox/ULT_v0.0/'
 ASRroot = EXEroot + 'Chinese_ASR/'
 am     = ASRroot + 'hmmset.mmf'
 lm     = ASRroot + 'tri.3-gram.lm.ascii'
@@ -113,10 +113,10 @@ def HVite_general(am,script,output_mlf,tied):
         lex, tied
     ))    
 def HVite(input_mlf, script, output_mlf):
-    os.system("HVite -a -I {} -D -H {} -S {} -C {} -l '*' -i {} -p 0.0 -s 0.0 {} {}".\
+    os.system("HVite -a -I '{}' -D -H '{}' -S '{}' -C '{}' -l '*' -i '{}' -p 0.0 -s 0.0 '{}' '{}'".\
         format(input_mlf,am,script,config,output_mlf,lex,tied))
 def HVite_phone(input_mlf, script, output_mlf):
-    os.system("HVite -a -m -I {} -D -H {} -S {} -C {} -l '*' -i {} -p 0.0 -s 0.0 {} {}".\
+    os.system("HVite -a -m -I '{}' -D -H '{}' -S '{}' -C '{}' -l '*' -i '{}' -p 0.0 -s 0.0 '{}' '{}'".\
         format(input_mlf,am,script,config,output_mlf,lex,tied))
 def HVite_state(input_mlf, script, output_mlf):
     os.system("HVite -a -f -I {} -D -H {} -S {} -C {} -l '*' -i {} -p 0.0 -s 0.0 {} {}".\

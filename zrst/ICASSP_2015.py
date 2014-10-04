@@ -7,10 +7,14 @@ import pyEXT
 #from zrst import pySFX
 #from zrst import pyEXT
 import os
-
+import std
 import util
+import numpy as np
+import cPickle as pickle
 
+import pdb
 #######################phase1####################
+# generate patterns
 '''
 ### set paths ###
 drpbox_path = r'/home/c2tao/Dropbox/'
@@ -40,14 +44,91 @@ for S in S_list:
         A.iteration('a_keep',config_name)
 '''
 
-#######################phase2####################
+
+#######################phase 2 ##################################
+# fix_messy syntax issues for queries
 '''
+
 drpbox_path = r'/home/c2tao/Dropbox/'
-querie_path = drpbox_path + r'Semester 12.5/ICASSP 2015 Data/5034_query_active/'
-labels_path = drpbox_path + r'Semester 8.5/_readonly/homophone_time_missing.mlf'
+querie_path = drpbox_path + r'Semester 12.5/ICASSP 2015 Data/'
+messie_path = drpbox_path + r'Semester 8.5/_readonly/'
+pa = messie_path +  r'homophone_character.mlf'
+pb = messie_path + r'homophone_time_missing.mlf'
+pc = messie_path + r'querycontent_homo.txt'
+
+fc = messie_path + r'fucked_up.mlf'
 corpus_path = drpbox_path + r'Semester 8.5/Corpus_5034wav/'
 
-Q = util.STD(root = querie_path, label = labels_path, corpus = corpus_path)
+
+M = util.MLF(pa)
+N = util.MLF(pb)
+
+for i in range(len(M.wav_list)):
+    w = M.wav_list[i]
+    if w not in N.wav_list:
+        print w
+        print M.wav_list[i+1]
+
+'''
+"*/N200108091200-23-02.rec homophone_time_missing"
+"""
+*/N200108091200-23-02.rec
+0 2200000 [AE61] 0
+2200000 4400000 [B8CC] 0
+4400000 6600000 [B351] 0
+6600000 8800000 [B573] 0
+8800000 11000000 [B8E9] 0
+11000000 13200000 [AB49] 0
+13200000 13500000 [A44A] 0
+.
+"""
+#A = util.read_feature(querie_path + '5034_query_active/feature_file/N200108091200-23-02.mfc')
+#print np.shape(A)
+
+#with open(pc,'r') as pcf:
+#    homo = pcf.readlines()
+#query = map(lambda x: x.strip().replace(')(',' ')[1:-1].split(),homo)
+#print query
+
+#with open(querie_path+'q_list.txt','w') as f:
+#    for q in query:
+#        f.write(' '.join(q)+'\n')
+#print N.tag_list[0]
+
+#query = map(lambda x:tuple(x.strip().split()),open(querie_path+'q_list.txt','r').readlines())
+
+
+#with open(messie_path+r'fucked_up.mlf','w') as ofile:
+#    ofile.write('#!MLF!#\n')
+#    for l in open(messie_path+r'corpuscontent_asc.mlf','r').readlines():
+#        l = l.strip()
+#        if l=='.':
+#            ofile.write(l+'\n')
+#        elif 'chn' in l:
+#            ofile.write('"*/'+l.split('/')[-1]+'\n')
+#        else:
+#            l=l.replace(' ','').replace('][',']\n[')
+#            ofile.write(l+'\n')
+
+#W = util.MLF(fc)
+#W.write(fc,dot='.mlf')
+
+#import pyULT
+#pyULT.HVite(messie_path+r'fucked_up.mlf',querie_path + r'5034_query_active/feature_list.scp',querie_path+'fa.mlf')
+
+
+
+
+#######################phase3####################
+
+# constuct std object
+drpbox_path = r'/home/c2tao/Dropbox/'
+querie_path = drpbox_path + r'Semester 12.5/ICASSP 2015 Data/5034_query_active/'
+labels_path = drpbox_path + r'Semester 12.5/ICASSP 2015 Data/'+r'fa.mlf'
+answer_path = drpbox_path + r'Semester 12.5/ICASSP 2015 Data/'+r'querycontent.txt'
+corpus_path = drpbox_path + r'Semester 8.5/Corpus_5034wav/'
+
+Q = std.STD(root = querie_path, label = labels_path, qlist = answer_path, corpus = corpus_path)
 S_list = [3,7,13]
 M_list = [50,100,300]
 K_list = [36,40]
@@ -59,46 +140,35 @@ for S in S_list:
             Q.add_pattern(A,p_name)
 
 Q.query_init()
-Q.query_copy()
+#Q.query_copy()
 Q.query_build()
-'''
-
-#######################phase 3 ##################################
-#fix_messy
-'''
-drpbox_path = r'/home/c2tao/Dropbox/'
-querie_path = drpbox_path + r'Semester 12.5/ICASSP 2015 Data/'
-messie_path = drpbox_path + r'Semester 8.5/_readonly/'
-pa = messie_path +  r'homophone_character.mlf'
-pb = messie_path + r'homophone_time_missing.mlf'
-pc = messie_path + r'querycontent_homo.txt'
-corpus_path = drpbox_path + r'Semester 8.5/Corpus_5034wav/'
+Q.parse_query()
 
 
-M = util.MLF(pa)
-N = util.MLF(pb)
+Q.feature_similarity()
+for p in Q.pattern_list:
+    Q.pattern_similarity(p)
 
-for w in M.wav_list:
-    if w not in N.wav_list:
-        print w
-with open(pc,'r') as pcf:
-    homo = pcf.readlines()
-query = map(lambda x: x.strip().replace(')(',' ')[1:-1].split(),homo)
-print query
-
-with open(querie_path+'q_list.txt','w') as f:
-    for q in query:
-        f.write(' '.join(q)+'\n')
-print N.tag_list[0]
-
-query = map(lambda x:x.strip().split(),open(querie_path+'q_list.txt','r').readlines())
-print query
-
-print query
-for q in query:
-    for i in range(len(M.wav_list)):
-        util.dtw(
-''')
+#similarity = {}
+#for i in range(len(Q.query)):
+#    similarity[i] = Q.feature_dtw(i,0)
+#pickle.dump(similarity,open(querie_path+'similarity','wb'))
+#similarity = pickle.load(open(querie_path+'similarity','rb'))
 
 
+
+mean_average_precision = []
+#q_answer = np.zeros((len(Q.query),len(Q.query_mlf.wav_list)))
+q_answer = [0.0 for i in range(len(Q.query_mlf.wav_list))]
+print len(Q.query_mlf.wav_list)
+for i in Q.query_answer:
+    for j in range(len(Q.query_answer[i])):
+        #q_answer[i,j] = 1.0
+        q_answer[i] = 1.0
+    #mean_average_precision += util.average_precision(q_answer[i,:],np.array(similarity[i])),
+    mean_average_precision += util.average_precision(q_answer,np.array(similarity[i])),
+print np.mean(mean_average_precision)
+print np.mean(sorted(mean_average_precision,reverse= True)[:16])
+
+#similarity = pickle.load(open(querie_path+'similarity','rb'))
 

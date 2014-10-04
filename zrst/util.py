@@ -2,8 +2,7 @@ import numpy as np
 import os
 import struct
 import shutil
-import pyHMM
-import cPickle as pickle
+#import cPickle as pickle
 
 class DTW(object):
     def __init__(self, seq1, seq2, distance_func=None):
@@ -117,8 +116,8 @@ class SubDTW(DTW):
         self.end_pos = min(range(-1,len(self._seq1)), key=lambda x: self._map[(x,len(self._seq2)-1)]) 
         return self._map[self.end_pos,len(self._seq2) - 1]
 
-
-'''debug DTW
+'''
+#debug DTW
 a = [0,1,2,3,4,5,6,7]
 b = [2,3,4,5]
 A = DTW(a,b,lambda x,y:abs(x-y))
@@ -129,6 +128,11 @@ B = SubDTW(a,b,lambda x,y:abs(x-y))
 print B.calculate()
 print B.get_path()
 '''
+
+
+
+
+
 
 
 def read_feature(file):
@@ -142,6 +146,7 @@ def read_feature(file):
         for j in range(nF):
             fmat[i,j] = struct.unpack('<f', fin.read(4))[0]
     return fmat
+
 '''
 from pylab import *
 file = r'/home/c2tao/Dropbox/Semester 8.5/Corpus_5034wav_MFCC/N200108011200-01-01.mfc'
@@ -168,7 +173,8 @@ def make_feature(in_folder, out_folder):
     for c in os.listdir(in_folder):
         temp_scp.write('\"' + in_folder +'/'+ c +'\" \"'+ out_folder +'/'+ c[:-4] +'.mfc'+'\"'+ '\n')
         feature_files +='\"' + out_folder +'/'+ c[:-4] +'.mfc'+'\"',
-    #temp_scp.close()
+    feature_files = sorted(feature_files)
+    temp_scp.close()
     #with open (out_folder+'/temp.scp', "r") as myfile: 
     #    feature_files = myfile.readlines()
 
@@ -183,6 +189,37 @@ in_folder = r'/home/c2tao/Dropbox/Semester 8.5/Corpus_5034wav/'
 out_folder = r'/home/c2tao/Dropbox/Semester 12.5/ICASSP 2015 Data/5034 feature/'
 print make_feature(in_folder,out_folder)
 '''
+
+def warp(distance_matrix):
+    M,N = np.shape(distance_matrix)
+    dmap = np.zeros((M+1,N+1))
+    dmap[1:,1:] = distance_matrix
+    for i in range(1,N+1):            
+        dmap[0, i] = float('inf')
+    for i in range(1,M+1):
+        for j in range(1,N+1):
+            dmap[i,j] += min(dmap[i-1,j-1],dmap[i-1,j],dmap[i,j-1]) 
+    return np.min(dmap[:,N])/N
+def cos_dist(A,B):
+    return (1.0 - np.dot(A,B.T)/(np.linalg.norm(B,ord=2,axis=1)*np.linalg.norm(A,ord=2,axis=1)[:,None]))/2
+'''
+from pylab import *
+file = r'/home/c2tao/Dropbox/Semester 8.5/Corpus_5034wav_MFCC/N200108011200-01-01.mfc'
+A = read_feature(file)
+B = read_feature(file)[50:100]
+file = r'/home/c2tao/Dropbox/Semester 8.5/Corpus_5034wav_MFCC/N200108011200-01-02.mfc'
+C = read_feature(file)[50:100]
+print np.shape(A)
+print np.shape(B)
+print np.shape(C)
+print np.shape(cos_dist(A,B))
+print 'min distance:',warp(cos_dist(A,B))
+print 'min distance:',warp(cos_dist(A,C))
+matshow(cos_dist(A,B))
+colorbar()
+show()
+'''
+
 
 class MLF(object):
     def __init__(self,path,mlf_name = ''):
@@ -236,6 +273,7 @@ class MLF(object):
         self.log_list = log_list
         self.tok_list = sorted(tok_list)
         self.mlf_type = mlf_type
+
     def fetch(self,med_list):
         return_list = []
         for I,T,Q in zip(self.int_list,self.tag_list,med_list):
@@ -312,6 +350,48 @@ class MLF(object):
         
         self.tok_list += ext.tok_list
         self.tok_list.sort()
+
+    
+    def wav_tok(self,wav_ind,time_inst):
+        #returns the tokens in the list from at 
+        #when on border, goes to the previos token
+        #print self.int_list[wav_ind]
+        return self.tag_list[wav_ind][np.nonzero(np.array(self.int_list[wav_ind])>=time_inst)[0][0]]
+
+    def wav_dur(self,wav_ind,tbeg,tend): 
+        #returns the tokens in the list from tbeg to tend   
+        iB = np.nonzero(np.array(self.int_list[wav_ind])>tbeg)[0][0]
+        iE = np.nonzero(np.array(self.int_list[wav_ind])<tend)[0][-1]+1+1
+        #print self.int_list[wav_ind]
+        return self.tag_list[wav_ind][iB:iE]
+'''
+drpbox_path = r'/home/c2tao/Dropbox/'
+labels_path = drpbox_path + r'Semester 12.5/ICASSP 2015 Data/'+r'fa.mlf'        
+M=MLF(labels_path)
+print M.wav_tok(0,40)
+print M.wav_tok(0,49)
+print M.wav_tok(0,52)
+
+print M.wav_tok(0,0)
+print M.wav_tok(0,206)
+
+print M.wav_dur(0,40,60)
+print M.wav_dur(0,49,60)
+print M.wav_dur(0,52,60)
+
+print M.wav_dur(0,40,61)
+print M.wav_dur(0,49,61)
+print M.wav_dur(0,52,61)
+
+print M.wav_dur(0,40,62)
+print M.wav_dur(0,49,62)
+print M.wav_dur(0,52,62)
+
+
+print M.wav_dur(0,50,51)
+print M.wav_dur(0,0,206)
+'''
+
 '''
 A = MLF(r'/home/c2tao/Dropbox/Semester 9.5/40_timit_train_300_11_relabel/result/result.mlf')
 print A.wav_list[:10]
@@ -369,95 +449,14 @@ print Q.purity
 '''
 
         
-class STD(object):
-    def __init__(self, root, label, corpus = ''):
-        self.root = root
-        self.label = label
-        self.corpus = corpus
-        
-        self.pattern_list = []
-        self.pattern_dict = {}
-
-        self.feature_fold = root + r'/feature_file/'
-        self.feature_file = root + r'/feature_list.scp'
-        
-        self.distanc_fold = root + r'/pattern_distance/'
-        self.distanc_file = {}
-        self.kl = []
-
-        self.decoded_fold = root + r'/pattern_decoded/'
-        self.decoded_file = {}
-
-
-    def query_init(self):
-        try: os.mkdir(self.feature_fold)
-        except: True
-        try: os.mkdir(self.distanc_fold)
-        except: True
-        try: os.mkdir(self.decoded_fold)
-        except: True
-
-        if os.path.exists(self.feature_file): return  
-        files = util.make_feature(self.corpus,self.feature_fold)
-        with open(self.feature_file,'w') as myfile:
-            for f in files:
-                myfile.write( f +'\n')
-            myfile.close()
-
-    def query_build(self):
-        for p in self.pattern_list:
-            self.pattern_distanc(p)
-            self.pattern_decoded(p)
-
-    def add_pattern(self, pattern, pattern_name):
-        self.pattern_list += pattern_name,
-        self.pattern_dict[pattern_name] = pattern
-        self.decoded_file[pattern_name] = self.decoded_fold + '/' + pattern_name +'.mlf'
-        self.distanc_file[pattern_name] = self.distanc_fold + '/' + pattern_name +'.kl'
-
-    def pattern_decoded(self, pattern_name):
-        if os.path.exists(self.decoded_file[pattern_name]): return  
-        self.pattern_dict[pattern_name].external_testing(Q.feature_file,Q.decoded_file[pattern_name])
-
-    def pattern_distanc(self, pattern_name):
-        if os.path.exists(self.distanc_file[pattern_name]): return  
-        dm = {}
-        H = pyHMM.parse_hmm(self.pattern_dict[pattern_name].X['models_hmm'])
-        p_list = []
-        for p in H.keys():
-            if 's' not in p:
-                p_list.append(p)
-        
-        for i in p_list:
-            for j in p_list:
-                if (j,i) not in dm:
-                    dm[(i,j)] = pyHMM.kld_hmm(H[i],H[j])
-        pickle.dump(dm, open(self.distanc_file[pattern_name],'wb'))
-
-    def read_distance(self, pattern_name):
-        return pickle.load(open(self.decoded_file[pattern_name] ,'rb'))
-    
-    def query_copy(self):
-        '''
-        only use this function if the query corpus is exactly the same as the pattern corpus
-        this copies the result.mlf from the ASR objects
-        '''
-        for p in self.pattern_list:
-            shutil.copyfile(self.pattern_dict[p].X['result_mlf'],self.decoded_file[p])
-
+def average_precision(answer, score):
+    I = np.array(sorted(range(len(answer)),key=lambda x: score[x],reverse = True))
+    sorted_answer = np.array(map(lambda x: float(answer[I[x]]), range(len(answer))))
+    position = (np.array(range(len(answer)))+1)
+    ap = np.cumsum(sorted_answer)/position
+    nz = np.nonzero(sorted_answer)[0]
+    return np.mean(ap[nz])
 '''
-drpbox_path = r'/home/c2tao/Dropbox/'
-querie_path = drpbox_path + r'Semester 12.5/ICASSP 2015 Data/5034_query_active/'
-labels_path = drpbox_path + r'Semester 8.5/_readonly/homophone_time_missing.mlf'
-corpus_path = drpbox_path + r'Semester 8.5/Corpus_5034wav/'
-target_path1 = drpbox_path + r'Semester 9.5/40_5034_50_3/'
-target_path2 = drpbox_path + r'Semester 9.5/36_5034_50_3/'
-
-A = ASR(target = target_path1)
-B = ASR(target = target_path2)
-Q = STD(root = querie_path, label = labels_path, corpus = corpus_path)
-Q.add_pattern(A,'40_5034_50_3')
-Q.add_pattern(B,'36_5034_50_3')
-Q.query_init()
-Q.query_build()
+print average_precision([1,1,1,0,0,],[1,1,1,0,-1])
+print average_precision([1,1,0,0,1,],[1,1,1,0,0])
 '''
