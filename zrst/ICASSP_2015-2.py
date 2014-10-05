@@ -193,69 +193,85 @@ def to_relative(myList):
     scoindex = [i[0] for i in sorted(enumerate(myList), key=lambda x:x[1])]
     return [adjusted[scoindex[i]] for i in range(len(myList))]
 
+similarity0 = {}
 similarity1 = {}
 similarity2 = {}
 for q in range(len(Q.query_answer)):
+    similarity0[q] = -np.array(simb[q])
     similarity1[q] = np.zeros(5034)
     similarity2[q] = np.zeros(5034)
     for p in Q.pattern_list:
         if "36" in p:
-            similarity1[q] += to_relative(np.array(sims[p][q]))
+            similarity1[q] -= np.array(sims[p][q])
+            #similarity1[q] += to_relative(np.array(sims[p][q]))
         elif "40" in p:
-            similarity2[q] += to_relative(np.array(sims[p][q]))
+            similarity2[q] -= np.array(sims[p][q])
+            #similarity2[q] += to_relative(np.array(sims[p][q]))
 
+L0 = Q.mean_average_precision(similarity0)
 L1 = Q.mean_average_precision(similarity1)
 L2 = Q.mean_average_precision(similarity2)
 
-print np.mean(L1[:10])
-print np.mean(L2[:10])
-print np.mean(L1[:12])
-print np.mean(L2[:12])
-print np.mean(L1[:16])
-print np.mean(L2[:16])
+
+print np.mean(L0[:26])
+print np.mean(L1[:26])
+print np.mean(L2[:26])
+
+print np.mean(L0[26:])
+print np.mean(L1[26:])
+print np.mean(L2[26:])
+
+
+print np.mean(L0)
+print np.mean(L1)
+print np.mean(L2)
 
 
 similarity ={}
 for p in Q.pattern_list:
     for q in range(len(Q.query_answer)):
         similarity[q] = -1.0*np.array(sims[p][q])
-    print p, np.mean(Q.mean_average_precision(similarity)[:10])
+    print p, \
+    np.mean(Q.mean_average_precision(similarity)[:26]),\
+    np.mean(Q.mean_average_precision(similarity)[26:]),\
+    np.mean(Q.mean_average_precision(similarity))
 
 #Li = sorted(range(52),key = lambda x:L1[x]-L2[x])
 #print np.mean([L1[i] for i in Li[:16]])
 #print np.mean([L2[i] for i in Li[:16]])
 
 '''
-0.0122604867605
-0.297893146155
-0.306994457926
+0.174296455899
+0.196853298036
+0.197586221147
 
-0.0117291255356
-0.261048241184
-0.264734501747
+0.255920307235
+0.284693920354
+0.28525845653
 
-0.0138893361458
-0.210985614933
-0.212653972432
+0.215108381567
+0.240773609195
+0.241422338838
 
-36_5034_50_3 0.0134892129081
-40_5034_50_3 0.0180296616895
-36_5034_100_3 0.0120563288871
-40_5034_100_3 0.0121509450393
-36_5034_300_3 0.0130161554567
-40_5034_300_3 0.0125363613836
-36_5034_50_7 0.0133295584226
-40_5034_50_7 0.0246606743287
-36_5034_100_7 0.0128534881127
-40_5034_100_7 0.0119296220653
-36_5034_300_7 0.0134826465878
-40_5034_300_7 0.0127948672767
-36_5034_50_13 0.00256768826826
-40_5034_50_13 0.0118301524063
-36_5034_100_13 0.011649679098
-40_5034_100_13 0.00774599577522
-36_5034_300_13 0.0119883934139
-40_5034_300_13 0.0122328136447
+36_5034_50_3 0.156819417559 0.254249533212 0.205534475385
+40_5034_50_3 0.152833981895 0.253205905526 0.203019943711
+36_5034_100_3 0.162234517047 0.252412739586 0.207323628316
+40_5034_100_3 0.159652136307 0.255308584604 0.207480360456
+36_5034_300_3 0.169037809691 0.261145233721 0.215091521706
+40_5034_300_3 0.17234461043 0.262421854021 0.217383232225
+36_5034_50_7 0.150692774601 0.250117212312 0.200404993457
+40_5034_50_7 0.149712590434 0.250979863945 0.200346227189
+36_5034_100_7 0.153349813809 0.249922125115 0.201635969462
+40_5034_100_7 0.159582100176 0.252983903294 0.206283001735
+36_5034_300_7 0.148724397264 0.251574501813 0.200149449538
+40_5034_300_7 0.145571598278 0.252999597339 0.199285597808
+36_5034_50_13 0.164062074426 0.257011428563 0.210536751495
+40_5034_50_13 0.164470822601 0.254960978882 0.209715900742
+36_5034_100_13 0.165025349725 0.2556714106 0.210348380162
+40_5034_100_13 0.16891586269 0.254932172281 0.211924017486
+36_5034_300_13 0.154067065562 0.253639471513 0.203853268538
+40_5034_300_13 0.162030273688 0.257872132687 0.209951203188
+
 '''
 
 ##################phase 4 hotfix ##################################

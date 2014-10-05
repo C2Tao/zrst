@@ -7,7 +7,6 @@ import os
 import shutil
 import numpy as np
 import cPickle as pickle
-import pdb
 
 class STD(object):
     def __init__(self, root, label, qlist = '', corpus = ''):
@@ -54,15 +53,17 @@ class STD(object):
         try: os.mkdir(self.similar_fold)
         except: True
 
-        shutil.copyfile(self.label,self.label_file)        
-        shutil.copyfile(self.qlist,self.qlist_file)
+        if not os.path.exists(self.label):
+            shutil.copyfile(self.label,self.label_file)
+        if not os.path.exists(self.qlist):            
+            shutil.copyfile(self.qlist,self.qlist_file)
 
-        if os.path.exists(self.feature_file): return  
-        files = util.make_feature(self.corpus,self.feature_fold)
-        with open(self.feature_file,'w') as myfile:
-            for f in files:
-                myfile.write( f +'\n')
-        myfile.close()
+        if not os.path.exists(self.feature_file):
+            files = util.make_feature(self.corpus,self.feature_fold)
+            with open(self.feature_file,'w') as myfile:
+                for f in files:
+                    myfile.write( f +'\n')
+            myfile.close()
 
 
     def parse_query(self):
@@ -108,6 +109,7 @@ class STD(object):
             f_file = self.feature_fold + self.query_mlf.wav_list[w]+'.mfc'
             D = util.read_feature(f_file)
             similarity[w] = util.warp(util.cos_dist(D,Q))
+            #similarity[w] = util.warp(- np.dot(D,Q.T))
             print query_index,w,similarity[w]
         return similarity
 
@@ -136,7 +138,7 @@ class STD(object):
             print pattern_name,query_index,w,similarity[w]
         return similarity
 
-    def pattern_similarity(self,pattern_name):
+    def pattern_similarity(self, pattern_name):
         if os.path.exists(self.similar_file[pattern_name]): 
             return  pickle.load(open(self.similar_file[pattern_name],'rb'))
         similarity = {}
@@ -145,8 +147,8 @@ class STD(object):
             similarity[i] = self.pattern_dtw(i,0,pattern_name,dm)
         pickle.dump(similarity,open(self.similar_file[pattern_name],'wb'))
         return similarity
-        
-    def get_dm(pattern_name):
+
+    def get_dm(self, pattern_name):
         dm = self.pattern_distanc(pattern_name)        
 
         ok = set([])
@@ -169,6 +171,15 @@ class STD(object):
         for k in dm.keys():
             dm[(k[1],k[0])] = dm[k]
         return dm
+
+    def mean_average_precision(self,similarity):
+        mean_ap = []
+        q_answer = [0.0 for i in range(len(self.query_mlf.wav_list))]
+        for i in self.query_answer:
+            for j in range(len(self.query_answer[i])):
+                q_answer[self.query_answer[i][j][0]] = 1.0
+            mean_ap += util.average_precision(q_answer,np.array(similarity[i])),
+        return mean_ap
 
     def query_build(self):
         for p in self.pattern_list:

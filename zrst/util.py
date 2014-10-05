@@ -452,11 +452,24 @@ print Q.purity
 def average_precision(answer, score):
     I = np.array(sorted(range(len(answer)),key=lambda x: score[x],reverse = True))
     sorted_answer = np.array(map(lambda x: float(answer[I[x]]), range(len(answer))))
-    position = (np.array(range(len(answer)))+1)
+    position = np.array(range(len(answer)))+1
     ap = np.cumsum(sorted_answer)/position
     nz = np.nonzero(sorted_answer)[0]
     return np.mean(ap[nz])
 '''
 print average_precision([1,1,1,0,0,],[1,1,1,0,-1])
 print average_precision([1,1,0,0,1,],[1,1,1,0,0])
+'''
+
+def average_precision_minus1(answer, score):
+    I = np.array(sorted(range(len(answer)),key=lambda x: score[x],reverse = True))
+    sorted_answer = np.array(map(lambda x: float(answer[I[x]]), range(len(answer))))[1:]
+    position = np.array(range(len(answer)-1))+1
+    ap = np.cumsum(sorted_answer)/position
+    nz = np.nonzero(sorted_answer)[0]
+    return np.mean(ap[nz])
+'''
+print average_precision_minus1([1,0,0,],[1,0,-1])
+print average_precision_minus1([1,1,0,],[1,0,-1])
+print average_precision_minus1([1,1,0,],[1,0,1])
 '''
