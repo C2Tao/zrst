@@ -178,7 +178,9 @@ class STD(object):
         for i in self.query_answer:
             for j in range(len(self.query_answer[i])):
                 q_answer[self.query_answer[i][j][0]] = 1.0
-            mean_ap += util.average_precision(q_answer,np.array(similarity[i])),
+
+            #mean_ap += util.average_precision(q_answer,np.array(similarity[i])),
+            mean_ap += util.average_precision_minus1(q_answer,np.array(similarity[i])),
         return mean_ap
 
     def query_build(self):
