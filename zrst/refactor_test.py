@@ -1,4 +1,5 @@
 import asr
+
 # from zrst import pyASR
 # from zrst import pySFX
 # from zrst import pyEXT
@@ -14,13 +15,11 @@ corpus_path = dropbox_path + r'Semester 8.5/Corpus_5034wav_mini/'
 initial_path = dropbox_path + r'ULT_v0.2/matlab/IDump_5034wav_mini_flatten.txt'
 history_path = dropbox_path + r'Semester 9.5/'
 
-S_list = [2, 3]
+S_list = [2, 4]
 for S in S_list:
     target_path = dropbox_path + r'Semester 13/refactor_test' + str(S) +  '/'
     A = asr.ASR(corpus=corpus_path, target=target_path, nState=S, dump =initial_path)
     A.initialization('a')
     A.iteration('a')
-    A.iteration('a')
-    A.iteration('a_mix')
-    A.iteration('a_keep')
+
 

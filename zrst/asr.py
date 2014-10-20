@@ -12,6 +12,7 @@ class SYS(object):
 
     def mkdir(self, path):
         try:
+            print "created" + path
             os.mkdir(path)
         except:
             pass
@@ -19,6 +20,7 @@ class SYS(object):
 
     def rmdir(self, path):
         try:
+            print "removed" + path
             shutil.rmtree(path)
         except:
             pass
@@ -426,8 +428,8 @@ class ASR(object):
         self.nFeature = nFeature
         self.nState = nState
         self.user_feature = user_feature
-        os.chdir(self.target)
-        os.chdir('..')
+        #os.chdir(self.target)
+        #os.chdir('..')
 
     def slice(self, corpus=(), target=(), label=()):
         if not corpus: corpus = self.X['corpus_dir']
@@ -626,10 +628,7 @@ class ASR(object):
             .writeSCP(self.X['wavlst_scp'], [], self.X['featur_dir']) \
             .writeSCP(self.X['wavhcp_scp'], ['hcopy'], self.X['featur_dir'])
 
-        try:
-            os.mkdir(self.X['featur_dir'])
-        except:
-            return
+        SYS().cldir(self.X['featur_dir'])
 
         os.system('HCopy -T 1 -C "{}"  -S "{}" '.format(
             self.X['hcopie_cfg'], self.X['wavhcp_scp']))
@@ -1077,9 +1076,9 @@ class ASR(object):
 
         # self.am_setup() #obsolete, bad for large corpus
         self.init_setup()
-        os.chdir(self.target)
-        os.chdir('..')
-        self.writeASR('0_{}/'.format(comment))
+        #os.chdir(self.target)
+        #os.chdir('..')
+        #self.writeASR('0_{}/'.format(comment))
 
     def a(self):
         self.feedback()
