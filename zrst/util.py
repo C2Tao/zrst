@@ -4,6 +4,9 @@ import struct
 import numpy as np
 
 
+
+
+
 # import cPickle as pickle
 
 class DTW(object):
@@ -176,8 +179,8 @@ def make_feature(in_folder, out_folder):
         feature_files += '\"' + out_folder + '/' + c[:-4] + '.mfc' + '\"',
     feature_files = sorted(feature_files)
     temp_scp.close()
-    #with open (out_folder+'/temp.scp', "r") as myfile: 
-    #    feature_files = myfile.readlines()
+    # with open (out_folder+'/temp.scp', "r") as myfile:
+    # feature_files = myfile.readlines()
 
     os.system('HCopy -T 1 -C "{}"  -S "{}" '.format(out_folder + '/temp.cfg', out_folder + '/temp.scp'))
 
@@ -249,7 +252,7 @@ class MLF(object):
                 tag_temp = []
                 med_temp = []
                 log_temp = []
-                #print wav_list[-1]
+                # print wav_list[-1]
             elif line == '.':
                 int_list += int_temp,
                 tag_list += tag_temp,
@@ -294,9 +297,9 @@ class MLF(object):
                 while match:
                     pos += 1
                     R += j,
-                    #R += t,
+                    # R += t,
                     if pos >= len(Q): break
-                    match = (pi <= Q[pos] and i > Q[pos])
+                    match = (pi <= Q[pos] < i)
                 pi = i
             return_list += R,
             assert len(R) == len(Q)
@@ -320,13 +323,13 @@ class MLF(object):
         os.system("""HLEd -l '*' -d "{}" -i "{}" "{}" "{}" """.format( \
             dictionary, phone_mlf, edit_file, self.path))
 
-    def write(self, path='temp.mlf', dot='.rec', selection=[]):
+    def write(self, path='temp.mlf', dot='.rec', selection=()):
         if not selection:
             index_list = range(len(self.tag_list))
             wav_list = self.wav_list
         else:
             index_list, wav_list = zip(*selection)
-            #tuples of the form (original_wav_index,new_wav_name)
+            # tuples of the form (original_wav_index,new_wav_name)
         if dot == '.lab': self.mlf_type = False
         M = open(path, 'w')
         M.write('#!MLF!#\n')
@@ -337,8 +340,8 @@ class MLF(object):
                 if self.mlf_type:
                     w1 = str(pj * 100000)
                     w2 = str(self.int_list[i][j] * 100000)
-                    #w1 = str(pj)
-                    #w2 = str(self.int_list[i][j])
+                    # w1 = str(pj)
+                    # w2 = str(self.int_list[i][j])
                     w3 = self.tag_list[i][j]
                     w4 = str(self.log_list[i][j])
                     M.write('{} {} {} {}\n'.format(w1, w2, w3, w4))
@@ -348,7 +351,7 @@ class MLF(object):
                     M.write('{}\n'.format(w3))
             M.write('.\n')
         M.close()
-        #self.path = path
+        # self.path = path
         return MLF(path)
 
     def merge(self, ext):
@@ -363,16 +366,16 @@ class MLF(object):
 
 
     def wav_tok(self, wav_ind, time_inst):
-        #returns the tokens in the list from at 
-        #when on border, goes to the previos token
-        #print self.int_list[wav_ind]
+        # returns the tokens in the list from at
+        # when on border, goes to the previos token
+        # print self.int_list[wav_ind]
         return self.tag_list[wav_ind][np.nonzero(np.array(self.int_list[wav_ind]) >= time_inst)[0][0]]
 
     def wav_dur(self, wav_ind, tbeg, tend):
-        #returns the tokens in the list from tbeg to tend   
+        # returns the tokens in the list from tbeg to tend
         iB = np.nonzero(np.array(self.int_list[wav_ind]) > tbeg)[0][0]
         iE = np.nonzero(np.array(self.int_list[wav_ind]) < tend)[0][-1] + 1 + 1
-        #print self.int_list[wav_ind]
+        # print self.int_list[wav_ind]
         return self.tag_list[wav_ind][iB:iE]
 
 
@@ -416,9 +419,9 @@ class Purity(object):
         assert (len(pat_MLF.wav_list) == len(ref_MLF.wav_list))
         self.pat_MLF = pat_MLF
         self.ref_MLF = ref_MLF
-        #nW number of wav files
+        # nW number of wav files
         self.nW = len(self.pat_MLF.int_list)
-        #feature length of per wav file
+        # feature length of per wav file
         self.nF = [self.pat_MLF.int_list[i][-1] for i in range(self.nW)]
         self.purities = np.zeros(self.nW)
         self.purities_non = np.zeros(self.nW)
