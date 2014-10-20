@@ -17,7 +17,7 @@ def lab2wav_X(label, wav_dir, corpus):
     #print 'ready'
     for wavefile in A.wav2word:
         W = wave.open(corpus + wavefile + '.wav')
-        scale = double(W.getnframes())/A.wav2word[wavefile][-1][1]
+        scale = float(W.getnframes())/A.wav2word[wavefile][-1][1]
         params = W.getparams()
         for word in A.wav2word[wavefile]:
             framechunk = W.readframes(int(scale*(word[2]-word[1])))
@@ -184,8 +184,8 @@ def getF1(ult_mlf, big_mlf, N,comparison = 'temp_F1_self.txt'):
         #print FA, CO, FR
         F.write(t + '\n')
         F.write('FA:' +str(FA[t]) + ' FR:'+str(FR[t]) + ' CO:'+str(CO[t]) +'\n')
-        recall[t] = double(CO[t])/(FR[t]+CO[t])
-        precision[t] = double(CO[t])/(FA[t]+CO[t])
+        recall[t] = float(CO[t])/(FR[t]+CO[t])
+        precision[t] = float(CO[t])/(FA[t]+CO[t])
         F1[t] = 2*recall[t]*precision[t]/(recall[t]+precision[t])
         F.write('recall:%.2f precision:%.2f F1:%.2f'%(recall[t],precision[t],F1[t]) +'\n')
     return FA,CO,FR,recall,precision,F1

@@ -321,60 +321,9 @@ class HTK:
             valSort.append( valList.pop(popIndex) )
         return keySort, valSort
 
-    def plot_histogram(self):
-        count=dict({})
-        for word in self.word2wav:
-            if word!='sil' and word!='sp':
-                count[word] = len(self.word2wav[word])
 
-        plot(range(len(count)),self.sortdict(count)[1],'-o')
-        title('Histogram of Dictionary(Mandarin Digits)')
-        xlabel('words')
-        ylabel('count')        
-        savefig('hist.png')
-        plt.cla()
-        plt.clf()
-        close()
-        return count
 
-    def piechart(self, mlf, folder=[], bestN=5, thresh=20):
-        composition = self.cross(mlf)
-        
-        if thresh > len(self.word2wav): thresh = len(self.word2wav)
-        count=dict({})
-        for word in self.word2wav:
-            count[word] = len(self.word2wav[word])          
-        plotList = self.sortdict(count)[0][:thresh]
 
-        for rword in plotList:
-            wlist = []
-            total = 0
-            for word in mlf.word2wav:
-                try:
-                    if composition[(rword,word)]!=0:
-                        total += composition[(rword,word)]
-                        wlist.append(word)
-                except:pass
-            percentage=dict({})
-            for word in wlist:
-                percentage[word] = float(composition[(rword,word)])/total
-            prlist = self.sortdict(percentage)[1][:bestN-1]
-            wdlist = self.sortdict(percentage)[0][:bestN-1]
-
-            figure(1, figsize=(6,6))
-            ax = axes([0.1, 0.1, 0.8, 0.8])
-
-            labels = [wd for wd in wdlist]
-            labels += 'other',
-            fracs  = [pr for pr in prlist]
-            fracs  += 1-sum(prlist),
-            explode =[0 for i in range(len(prlist)+1) ]
-
-            pie(fracs, explode=explode, labels=labels, autopct='%1.1f%%', shadow=True)
-            title('Compoistion of ' + rword, bbox={'facecolor':'0.8', 'pad':5})
-            plt.savefig(folder + rword+'.png')
-            plt.cla()
-            plt.clf()
     
     def percentage(self, mlf):
         composition = self.cross(mlf)

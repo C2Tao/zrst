@@ -1,5 +1,5 @@
 from pyASR import *
-
+import math
 
 
 def flatten_pattern(input_dictionary, input_mlf, output_dictionary, output_mlf):
@@ -100,10 +100,10 @@ def parse_pattern(input_dictionary, input_mlf, output_dictionary):
         wdl.append(word)
     def entropy(v):
         s = sum(v)
-        v = [double(e)/s for e in v]
+        v = [float(p)/s for p in v]
         H=0
-        for e in v:
-            H -= log2(e ** e)
+        for p in v:
+            H -= p * math.log(p ** p,2)
         return H
 
     count_dict = parse_pattern_load_count(input_mlf,input_dictionary)

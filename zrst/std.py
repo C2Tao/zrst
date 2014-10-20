@@ -197,7 +197,7 @@ class STD(object):
 
     def pattern_decoded(self, pattern_name):
         if os.path.exists(self.decoded_file[pattern_name]): return  
-        self.pattern_dict[pattern_name].external_testing(Q.feature_file,Q.decoded_file[pattern_name])
+        self.pattern_dict[pattern_name].external_testing(self.feature_file,self.decoded_file[pattern_name])
 
     def pattern_distanc(self, pattern_name):
         if os.path.exists(self.distanc_file[pattern_name]): 

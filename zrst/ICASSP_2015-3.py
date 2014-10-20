@@ -11,7 +11,6 @@ import std
 import util
 import numpy as np
 import cPickle as pickle
-import scipy
 #######################phase1####################
 # generate patterns
 '''
@@ -244,7 +243,6 @@ for K in K_list:
 
 
 
-print scipy.
 
 
 '''

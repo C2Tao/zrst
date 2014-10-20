@@ -62,33 +62,7 @@ def HVite_English(script, output_mlf):
         wdnet, output_mlf, 
         lex, tied
     ))
-def feature_English(script, output_mlf):    
-    #mess, dont use yet
-    HTK()\
-    .readSCP(self.X['corpus_dir'])\
-    .writeSCP(self.X['wavlst_scp'],[]       , self.X['featur_dir'])\
-    .writeSCP(self.X['wavhcp_scp'],['hcopy'], self.X['featur_dir'])
- 
-    try:    os.mkdir(self.X['featur_dir'])
-    except: return
-    
-    SYS().cygwin('HCopy -T 1 -C {} -S {}'.format(
-        self.X['hcopie_cfg'],self.X['wavhcp_scp']))
-    
-    tied_list = map(lambda x: x.strip('\n'), open(tied).readlines())
-    L = open(lex,'w')
-    for t in tied_list:
-        L.write(t+' '+t+'\n')
-    L.close()
-    import pyHTK
-    pyHTK.HTK().readDCT(lex).writeDCT(grammar,optList=['full'])
-    os.system('HParse {} {}'.format(grammar,wdnet))
-    os.system("HVite -D -H {} -S {} -C {} -w {} -l '*' -i {} -p 0.0 -s 0.0 {} {}".format(\
-        am,
-        script,config,
-        wdnet, output_mlf, 
-        lex, tied
-    ))
+
 def HVite_general(am,script,output_mlf,tied):
     #mess, dont use yet
     ASRroot = EXEroot + 'Chinese_ASR/'
