@@ -1,12 +1,13 @@
-from pyASR import ASR
-from pyHTK import HTK
-from pyASR import SYS
-import util
-import pyHMM
 import os
 import shutil
-import numpy as np
 import cPickle as pickle
+
+import numpy as np
+
+import util
+
+import pyHMM
+
 
 class STD(object):
     def __init__(self, root, label, qlist = '', corpus = ''):
@@ -226,16 +227,16 @@ class STD(object):
 
 
 '''
-drpbox_path = r'/home/c2tao/Dropbox/'
-querie_path = drpbox_path + r'Semester 12.5/ICASSP 2015 Data/5034_query_active/'
-labels_path = drpbox_path + r'Semester 8.5/_readonly/homophone_time_missing.mlf'
-corpus_path = drpbox_path + r'Semester 8.5/Corpus_5034wav/'
-target_path1 = drpbox_path + r'Semester 9.5/40_5034_50_3/'
-target_path2 = drpbox_path + r'Semester 9.5/36_5034_50_3/'
+dropbox_path = r'/home/c2tao/Dropbox/'
+query_path = dropbox_path + r'Semester 12.5/ICASSP 2015 Data/5034_query_active/'
+labels_path = dropbox_path + r'Semester 8.5/_readonly/homophone_time_missing.mlf'
+corpus_path = dropbox_path + r'Semester 8.5/Corpus_5034wav/'
+target_path1 = dropbox_path + r'Semester 9.5/40_5034_50_3/'
+target_path2 = dropbox_path + r'Semester 9.5/36_5034_50_3/'
 
 A = ASR(target = target_path1)
 B = ASR(target = target_path2)
-Q = STD(root = querie_path, label = labels_path, corpus = corpus_path)
+Q = STD(root = query_path, label = labels_path, corpus = corpus_path)
 Q.add_pattern(A,'40_5034_50_3')
 Q.add_pattern(B,'36_5034_50_3')
 Q.query_init()
