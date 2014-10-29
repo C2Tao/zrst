@@ -22,9 +22,9 @@ A.iteration('a_keep', config_name)
 
 # ## continue interrupted work ###
 # declare object
-A = asr.ASR(corpus=corpus_path, target=target_path, dump=initial_path)
+# A = asr.ASR(corpus=corpus_path, target=target_path, dump=initial_path)
 # select interrupted folder
-A.offset = 3
-A.readASR(str(A.offset) + '_' + config_name)
+# A.offset = 3
+# A.readASR(str(A.offset) + '_' + config_name)
 # continue for some iterations
-A.iteration('a', config_name)
+# A.iteration('a', config_name)
