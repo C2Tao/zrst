@@ -42,8 +42,8 @@ macrosf = """\
 
 macrosf_user = """\
 ~o
-<STREAMINFO> 1 39
-<VECSIZE> 39
+<STREAMINFO> 1 X
+<VECSIZE> X
 <NULLD>
 <USER>
 """

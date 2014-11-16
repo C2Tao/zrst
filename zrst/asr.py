@@ -2,7 +2,7 @@ import os
 import shutil
 import time
 import wave
-
+import util
 from configs import *
 
 
@@ -413,8 +413,8 @@ class HTK(object):
 
 
 class ASR(object):
-    def __init__(self, corpus='', target='./', label=(), dump='IDump.txt', nState=3, nFeature=39, user_feature=False,
-                 do_copy=False):
+    def __init__(self, corpus='', target='./', label=(), dump='IDump.txt', nState=3, nFeature=39, feature_func=None,
+                 do_copy=False, pad_silence=True):
         self.do_copy = do_copy
         self.corpus = corpus
         # self.label = label
@@ -427,7 +427,18 @@ class ASR(object):
         self.dump = dump
         self.nFeature = nFeature
         self.nState = nState
-        self.user_feature = user_feature
+
+        self.pad_silence = pad_silence
+
+        if self.pad_silence:
+            self.sil_tag = 'grammar'
+        else:
+            self.sil_tag = 'full'
+        if feature_func:
+            self.user_feature = True
+            self.feature_func = feature_func
+        else:
+            self.user_feature = False
         #os.chdir(self.target)
         #os.chdir('..')
 
@@ -507,8 +518,8 @@ class ASR(object):
         # training
         open(self.X['addsil_scp'], 'w').write(addsil)
         open(self.X['addmix_scp'], 'w').write(addmix)
-        addmix_all = """MU 3 \{sil.state[2-4].mix}\nMU +1 {*.state[2-%d].mix}\n""" % self.nState
-        open(self.X['addall_scp'], 'w').write(addmix_all)
+        #addmix_all = """MU 3 \{sil.state[2-4].mix}\nMU +1 {*.state[2-%d].mix}\n""" % self.nState
+        #open(self.X['addall_scp'], 'w').write(addmix_all)
 
         # reference
         # if self.label:
@@ -623,15 +634,18 @@ class ASR(object):
         self.X['flattn_dct'] = self.X['lanmdl_dir'] + 'flat_dictionary.txt'
 
     def feature(self):
+
         HTK() \
             .readSCP(self.X['corpus_dir']) \
             .writeSCP(self.X['wavlst_scp'], [], self.X['featur_dir']) \
             .writeSCP(self.X['wavhcp_scp'], ['hcopy'], self.X['featur_dir'])
 
         SYS().cldir(self.X['featur_dir'])
-
-        os.system('HCopy -T 1 -C "{}"  -S "{}" '.format(
-            self.X['hcopie_cfg'], self.X['wavhcp_scp']))
+        if not self.user_feature:
+            os.system('HCopy -T 1 -C "{}"  -S "{}" '.format(
+                self.X['hcopie_cfg'], self.X['wavhcp_scp']))
+        else:
+            util.make_feature(self.X['corpus_dir'],self.X['featur_dir'],self.feature_func)
 
     def exp_feature(self, wav_directory, wav_list):
         script = 'temp_hcopy.txt'
@@ -653,7 +667,7 @@ class ASR(object):
     def training_macros(self):
         macros = open(self.X['macros_hmm'], 'w')
         if self.user_feature:
-            macros.write(macrosf_user)
+            macros.write(macrosf_user.replace('X',str(self.nFeature)))
         else:
             macros.write(macrosf)
         map(lambda x: macros.write(x), open(self.X['markov_dir'] + 'vFloors').readlines())
@@ -1007,8 +1021,8 @@ class ASR(object):
             .writeDCT(self.X['dictry_dct'], ['sil', 'sp']) \
             .writeDCT(self.X['modeli_dct'], ['model', 'sil']) \
             .writeDCT(self.X['modelp_dct'], ['model', 'sp', 'sil']) \
-            .writeDCT(self.X['grmmri_dct'], ['grammar', 'sil']) \
-            .writeDCT(self.X['grmmrp_dct'], ['grammar', 'sp', 'sil'])
+            .writeDCT(self.X['grmmri_dct'], [self.sil_tag, 'sil']) \
+            .writeDCT(self.X['grmmrp_dct'], [self.sil_tag, 'sp', 'sil'])
 
         os.system('HParse "{}"  "{}" '.format(self.X['grmmri_dct'], self.X['wdneti_dct']))
         os.system('HParse "{}"  "{}" '.format(self.X['grmmrp_dct'], self.X['wdnetp_dct']))
@@ -1027,8 +1041,8 @@ class ASR(object):
             .writeDCT(self.X['dictry_dct'], ['sil', 'sp']) \
             .writeDCT(self.X['modeli_dct'], ['model', 'sil']) \
             .writeDCT(self.X['modelp_dct'], ['model', 'sp', 'sil']) \
-            .writeDCT(self.X['grmmri_dct'], ['grammar', 'sil']) \
-            .writeDCT(self.X['grmmrp_dct'], ['grammar', 'sp', 'sil'])
+            .writeDCT(self.X['grmmri_dct'], [self.sil_tag, 'sil']) \
+            .writeDCT(self.X['grmmrp_dct'], [self.sil_tag, 'sp', 'sil'])
 
         os.system('HParse "{}"  "{}" '.format(self.X['grmmri_dct'], self.X['wdneti_dct']))
         os.system('HParse "{}"  "{}" '.format(self.X['grmmrp_dct'], self.X['wdnetp_dct']))
@@ -1045,8 +1059,8 @@ class ASR(object):
             .readDCT(self.X['dictry_dct'], ['sil', 'sp']) \
             .writeDCT(self.X['modeli_dct'], ['model', 'sil']) \
             .writeDCT(self.X['modelp_dct'], ['model', 'sil', 'sp']) \
-            .writeDCT(self.X['grmmri_dct'], ['grammar', 'sil']) \
-            .writeDCT(self.X['grmmrp_dct'], ['grammar', 'sp', 'sil'])
+            .writeDCT(self.X['grmmri_dct'], [self.sil_tag, 'sil']) \
+            .writeDCT(self.X['grmmrp_dct'], [self.sil_tag, 'sp', 'sil'])
 
         os.system('HParse "{}"  "{}" '.format(self.X['grmmri_dct'], self.X['wdneti_dct']))
         os.system('HParse "{}"  "{}" '.format(self.X['grmmrp_dct'], self.X['wdnetp_dct']))
