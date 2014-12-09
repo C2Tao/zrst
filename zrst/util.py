@@ -2,12 +2,6 @@ import os
 import struct
 import numpy as np
 
-from scipy.io import wavfile
-from scikits.talkbox.features import mfcc
-
-
-
-
 # import cPickle as pickle
 
 class DTW(object):
@@ -187,6 +181,8 @@ def add_deltas(row_feature):
     return np.concatenate((np.concatenate((row_feature[:-2], row_delta_1[:-1]), axis=1),row_delta_2),axis=1)
 
 def mel_filter_out(wav_path):
+    from scipy.io import wavfile
+    from scikits.talkbox.features import mfcc
     freq, x = wavfile.read(wav_path)
     ceps, mspec, spec = mfcc(x,fs=freq)
     return add_deltas(mspec)
