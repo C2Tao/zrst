@@ -188,5 +188,6 @@ for y = 1:w
     end
 end
 
+fclose('all');
 exit;
 %imshow(dotplot(F,F));
