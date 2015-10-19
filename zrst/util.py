@@ -1,9 +1,14 @@
 import os
 import struct
 import numpy as np
-
 # import cPickle as pickle
+from zrst.m_path import matlab_path
 
+def get_dumpfile(wav_dir, cluster_number, dump_file):
+    print matlab_path
+    import sys
+    
+    os.system('bash {}/run_clusterDetection.sh {} {} {}'.format(matlab_path, wav_dir, 50, dump_file))
 class DTW(object):
     def __init__(self, seq1, seq2, distance_func=None):
         '''
