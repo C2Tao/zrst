@@ -2,13 +2,35 @@ import os
 import struct
 import numpy as np
 # import cPickle as pickle
-from zrst.m_path import matlab_path
 
-def get_dumpfile(wav_dir, cluster_number, dump_file):
-    print matlab_path
+def make_dumpfile(wav_dir, cluster_number, dump_file):
+    from zrst.m_path import matlab_path
     import sys
     
-    os.system('bash {}/run_clusterDetection.sh {} {} {}'.format(matlab_path, wav_dir, 50, dump_file))
+    os.system('bash {}/run_clusterDetection.sh {} {} {}'.format(matlab_path, wav_dir, cluster_number, dump_file))
+
+def rand_dumpfile(dump_file,cluster_number,rand_file):
+    import random
+    text = open(dump_file).readlines()
+    A = open(rand_file,'w')
+    for i in range(len(text)):
+        if '.wav' in text[i]:
+            A.write(text[i])
+        else:
+            A.write(str(random.randint(1,cluster_number))+'\n')
+
+def flat_dumpfile(dump_file,flat_file)
+    I = open(dump_file,'r')
+    O = open(flat_file,'w')
+    for line in I:
+        if 'wav' in line:
+            O.write(line)
+        else:
+            for p in line.strip('\n').split():
+                if p: O.write(p+'\n')
+
+
+
 class DTW(object):
     def __init__(self, seq1, seq2, distance_func=None):
         '''
