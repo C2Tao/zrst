@@ -640,6 +640,9 @@ class ASR(object):
             .writeSCP(self.X['wavlst_scp'], [], self.X['featur_dir']) \
             .writeSCP(self.X['wavhcp_scp'], ['hcopy'], self.X['featur_dir'])
 
+        try:    os.mkdir(self.X['featur_dir'])
+        except: return
+
         SYS().cldir(self.X['featur_dir'])
         if not self.user_feature:
             os.system('HCopy -T 1 -C "{}"  -S "{}" '.format(
@@ -1077,19 +1080,29 @@ class ASR(object):
         if command == 'ax': self.ax()
         if do_slice:  self.slice()
         self.record_time()
-        if self.do_copy:
-            os.chdir(self.target)
-            os.chdir('..')
-            self.writeASR('{}_{}/'.format(str(self.offset + 1), comment))
-        self.offset += 1
-
-    def initialization(self, comment='0_initial_condition/'):
+        self.save_snapshot(comment)
+    def initialization(self, comment=''):
         self.clean()
         # self.matlab()
         self.feature()
 
         # self.am_setup() #obsolete, bad for large corpus
         self.init_setup()
+        self.save_snapshot(comment)
+    def save_snapshot(self, comment):
+        if self.do_copy:
+            os.chdir(self.target)
+            os.chdir('..')
+            if self.target[-1]=='/':
+                name = self.target.split('/')[-2]
+            else:
+                name = os.path.basename(self.target)
+            if comment:
+                self.writeASR('{}_snapshot/{}_{}_{}/'.format(name, str(self.offset + 1),name, comment))
+            else:
+                self.writeASR('{}_snapshot/{}_{}/'.format(name, str(self.offset + 1),name))
+        self.offset += 1
+
         #os.chdir(self.target)
         #os.chdir('..')
         #self.writeASR('0_{}/'.format(comment))

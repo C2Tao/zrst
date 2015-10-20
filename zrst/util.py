@@ -6,12 +6,12 @@ import numpy as np
 def make_dumpfile(wav_dir, cluster_number, dump_file):
     from zrst.m_path import matlab_path
     import sys
-    
+     
     os.system('bash {}/run_clusterDetection.sh {} {} {}'.format(matlab_path, wav_dir, cluster_number, dump_file))
 
 def rand_dumpfile(dump_file,cluster_number,rand_file):
     import random
-    text = open(dump_file).readlines()
+    text = open(dump_file,'r').readlines()
     A = open(rand_file,'w')
     for i in range(len(text)):
         if '.wav' in text[i]:
@@ -19,7 +19,7 @@ def rand_dumpfile(dump_file,cluster_number,rand_file):
         else:
             A.write(str(random.randint(1,cluster_number))+'\n')
 
-def flat_dumpfile(dump_file,flat_file)
+def flat_dumpfile(dump_file,flat_file):
     I = open(dump_file,'r')
     O = open(flat_file,'w')
     for line in I:
