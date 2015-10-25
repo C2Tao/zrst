@@ -12,54 +12,55 @@ import numpy as np
 import scipy.stats as stat
 np.random.seed(0)
 from multiprocessing import Pool
-
 from zrst import util
 
-L_list = ['Czech', 'French', 'German', 'Spanish']
+K_list = ['Czech', 'French', 'German', 'Spanish']
+L_list = ['train','test','dev']
 M_list = [50, 100, 200, 400]
 N_list = [3, 5, 7, 9]
 O_list = ['rand', 'flat', 'hier']
-P_list = ['train','test','dev']
-#corp_path = '/home_local/c2tao/GlobalPhone_subset/{}/wav/train/'
-corp_path = '/home_local/c2tao/GlobalPhone_subset/{}/wav/{}/'
-dump_path = '/home_local/c2tao/phd/initial/{}_{}_{}.txt'
-patt_path = '/home_local/c2tao/phd/pattern/{}_{}_{}_{}/'
+corp_path = '/home/c2tao/fourlang/GlobalPhone_subset/{}/wav/{}/'
+dump_path = '/home/c2tao/initial/{}_{}_{}_{}.txt'
+#patt_path = '/pattern/{}_{}_{}_{}_{}/'
+
+
 
 
 # ######################phase0####################
-
-def build_initial(L, M):
-    wave = corp_path.format(L,'train')
-    hier = dump_path.format(L, M, 'hier')
-    rand = dump_path.format(L, M, 'rand')
-    flat = dump_path.format(L, M, 'flat')
+'''
+def build_initial(K, L, M):
+    wave = corp_path.format(K, L)
+    hier = dump_path.format(K, L, M,'hier')
+    rand = dump_path.format(K, L, M,'rand')
+    flat = dump_path.format(K, L, M,'flat')
     util.make_dumpfile(wave, M, hier)
     util.flat_dumpfile(hier, flat)
     util.rand_dumpfile(flat, M, rand)
-for L in L_list:
-    for M in M_list:
-        build_initital(L, M)
-
-def build_feature(L, P):
-    rand_name = str(np.random.rand(1))
+for K in K_list:
+    for L in L_list:
+        for M in M_list:
+            build_initial(K, L, M)
+'''
+def build_feature(K, L):
+    rand_name = str(np.random.rand(1)[:])
     print 'making random directory:',rand_name
     os.system('mkdir '+rand_name)
     X = asr.ASR(\
-        corpus=corp_path.format(L, P),\
+        corpus=corp_path.format(K, L),\
         target=rand_name,dump=rand_name)
     X.clean()
     X.feature()
     os.system('rm -rf '+rand_name)
-for L in L_list:
-    for P in P_list:
-        build_feature(L ,P)
-
+for K in K_list:
+    for L in L_list:
+        build_feature(K ,L)
 # ######################phase1####################
+'''
 # generate patterns
-def build_pattern(L, M, N, O):
+def build_pattern(L, M, N, O, P):
     X = asr.ASR(\
-        corpus=corp_path.format(L,'train'),\
-        target=patt_path.format(L,M,N,O),\
+        corpus=corp_path.format(L,P),\
+        target=patt_path.format(L,M,N,O,P),\
         nState=N,dump=dump_path.format(L,M,O),\
         do_copy=True)
 
@@ -84,6 +85,7 @@ for L in L_list:
                 if hash('_'.join(map(str,[L,M,N,O])))%100 == int(sys.argv[1]):
                     print L,M,N,O
                     #build_pattern(L,M,N,O)
+'''
 # ## set paths ###
 '''
 dropbox_path = r'D:/Dropbox/'
