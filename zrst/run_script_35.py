@@ -19,9 +19,9 @@ L_list = ['train','test','dev']
 M_list = [50, 100, 200, 400]
 N_list = [3, 5, 7, 9]
 O_list = ['rand', 'flat', 'hier']
-corp_path = '/home/c2tao/fourlang/GlobalPhone_subset/{}/wav/{}/'
-dump_path = '/home/c2tao/initial/{}_{}_{}_{}.txt'
-#patt_path = '/pattern/{}_{}_{}_{}_{}/'
+corp_path = '/home_local/c2tao/phd/GlobalPhone_subset/{}/wav/{}/'
+dump_path = '/home_local/c2tao/phd/initial/{}_{}_{}_{}.txt'
+patt_path = '/home_local/c2tao/phd/pattern/{}_{}_{}_{}_{}/'
 
 
 
@@ -40,7 +40,6 @@ for K in K_list:
     for L in L_list:
         for M in M_list:
             build_initial(K, L, M)
-'''
 def build_feature(K, L):
     rand_name = str(np.random.rand(1)[:])
     print 'making random directory:',rand_name
@@ -54,14 +53,14 @@ def build_feature(K, L):
 for K in K_list:
     for L in L_list:
         build_feature(K ,L)
-# ######################phase1####################
 '''
+# ######################phase1####################
 # generate patterns
-def build_pattern(L, M, N, O, P):
+def build_pattern(K, L, M, N, O):
     X = asr.ASR(\
-        corpus=corp_path.format(L,P),\
-        target=patt_path.format(L,M,N,O,P),\
-        nState=N,dump=dump_path.format(L,M,O),\
+        corpus=corp_path.format(K,L),\
+        target=patt_path.format(K,L,M,N,O),\
+        nState=N,dump=dump_path.format(K,L,M,O),\
         do_copy=True)
 
     X.initialization()
@@ -70,22 +69,19 @@ def build_pattern(L, M, N, O, P):
         for j in range(1): X.iteration('a_mix')
         for j in range(4): X.iteration('a_keep')
     return X
-#L = 'Czech'
-#L = 'French'
-#L = 'German'
-#L = 'Spanish'
 import numpy as np
 
 
 import sys
-for L in L_list:
-    for M in M_list:
-        for N in N_list:
-            for O in O_list:
-                if hash('_'.join(map(str,[L,M,N,O])))%100 == int(sys.argv[1]):
-                    print L,M,N,O
-                    #build_pattern(L,M,N,O)
-'''
+for K in K_list:
+    for L in L_list:
+        for M in M_list:
+            for N in N_list:
+                for O in ['flat']:
+                    if hash('_'.join(map(str,[K,L,M,N,O])))%100 == int(sys.argv[1]):
+                        print K,L,M,N,O
+                        build_pattern(K,L,M,N,O)
+#build_pattern('German','dev',50,3,'flat')
 # ## set paths ###
 '''
 dropbox_path = r'D:/Dropbox/'

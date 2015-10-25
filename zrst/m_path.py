@@ -1,1 +1,1 @@
-matlab_path='/home/c2tao/phd/zrst/zrst/matlab'
+matlab_path='/home/c2tao/zrst/zrst/matlab'
