@@ -170,7 +170,7 @@ def read_feature(file):
     for i in range(nN):
         for j in range(nF):
             fmat[i, j] = struct.unpack('<f', fin.read(4))[0]
-    print nN, nF
+    print file, nN, nF
     return fmat
 '''
 from pylab import *

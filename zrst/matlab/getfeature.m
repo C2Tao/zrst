@@ -1,5 +1,5 @@
 function M=getfeature(wave)
-seed = feature('getpid')
+seed = feature('getpid');
 %cmd=sprintf('c:\\cygwin\\bin\\HList.exe -C hcopy.cfg -i 39 "%s" > "%s"',wave,'temp.txt');
 cmd=sprintf('HList -C hcopy.cfg -i 39 "%s" > "%s"',wave,['temp' int2str(seed) '.txt']);
 %cmd=sprintf('HList.exe -C hcopy_scale.cfg -i 39 "%s" > "%s"',wave,'temp.txt');

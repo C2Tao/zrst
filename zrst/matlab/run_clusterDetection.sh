@@ -4,6 +4,6 @@ echo $PWD
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd $DIR
 echo $PWD
-matlab -nosplash -nowindow -r "path='$1';clusterNumber=$2;dumpfile='$3'; clusterDetection_commandline" 
+matlab -nosplash -nodesktop -nojvm -r "path='$1';clusterNumber=$2;dumpfile='$3'; clusterDetection_commandline" 
 cd $ORI
 echo $PWD
