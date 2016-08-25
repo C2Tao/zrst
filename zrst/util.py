@@ -382,6 +382,30 @@ class MLF(object):
         assert len(return_list) == len(med_list)
         return return_list
 
+    def overlap(src_mlf, ext_mlf):
+        # map median of tokens in ext_mlf to tokens in src_mlf
+        # returns count matrix of size  [# of tokens in src_mlf, # of tokens in ext_mlf]
+        pos_list = src_mlf.fetch(ext_mlf.med_list)
+        assert(src_mlf.wav_list == ext_mlf.wav_list)
+        fet_list = []
+        for p, s in zip(pos_list, src_mlf.tag_list):
+            fet_list.append(map(lambda x: s[x], p))
+        x_tag = src_mlf.tok_list
+        y_tag = ext_mlf.tok_list
+        count = {}
+        for b in x_tag:
+            for a in y_tag:
+                count[(a, b)] = 0.0
+        for t_list, f_list in zip(ext_mlf.tag_list, fet_list):
+            for i, t in enumerate(t_list):
+                count[(t, f_list[i])]+=1.0
+
+        mat = np.zeros([len(y_tag), len(x_tag)],dtype=np.float32)
+        for j, b in enumerate(x_tag):
+            for i, a in enumerate(y_tag):
+                mat[i, j] =  count[(a, b)] 
+        return mat
+
     def accuracy(self, answer, acc='acc.txt'):
         A = open('phone.txt', 'w')
         for p in answer.tok_list:
