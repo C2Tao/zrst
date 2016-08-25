@@ -294,6 +294,19 @@ colorbar()
 show()
 '''
 
+def run_parallel(func, arg_list): 
+    from joblib import Parallel, delayed
+    import multiprocessing
+
+    num_cores = multiprocessing.cpu_count()
+    results = Parallel(n_jobs=num_cores)(delayed(func)(*args) for args in arg_list)
+    return results
+
+def test_parallel_example_function(x, y):
+    return x*y
+
+def test_parallel():
+    print run_parallel(test_parallel_example_function, [(1, 2), (3, 4), (5, 6)])
 
 class MLF(object):
     def __init__(self, path, mlf_name=''):
