@@ -1,3 +1,4 @@
+#!/bin/sh
 #matlab -nosplash -nowindow -r "path='/home/c2tao/phd/GlobalPhone_subset/German/wav/train/';clusterNumber=50;dumpfile='german50'; clusterDetection_commandline" 
 ORI=$PWD
 echo $PWD
