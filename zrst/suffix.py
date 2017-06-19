@@ -41,14 +41,13 @@ def flatten_pattern(input_dictionary, input_mlf, output_dictionary, output_mlf):
         M.write('.\n')
 
     F = HTK()
-    F.wordList = []
+    F.word_list = []
     F.word2pone = dict({})
     F.pone2word = dict({})
     for pone in H.pone2word:
-        # print pone
         for p in pone:
-            if p in F.wordList: continue
-            F.wordList.append(p)
+            if p in F.word_list: continue
+            F.word_list.append(p)
             F.pone2word[p,] = p
             F.word2pone[p] = p,
     F.writeDCT(output_dictionary, ['sil', 'sp'])
@@ -143,7 +142,7 @@ def parse_pattern(input_dictionary, input_mlf, output_dictionary):
     A = HTK()
     A.word2pone = w2p
     A.pone2word = p2w
-    A.wordList = wdl
+    A.word_list = wdl
     A.writeDCT(output_dictionary, ['sil', 'sp'])
 
     
