@@ -400,11 +400,11 @@ class MLF(object):
             for i, t in enumerate(t_list):
                 count[(t, f_list[i])]+=1.0
 
-        mat = np.zeros([len(y_tag), len(x_tag)],dtype=np.float32)
+        mat = np.zeros([len(x_tag), len(y_tag)],dtype=np.float32)
         for j, b in enumerate(x_tag):
             for i, a in enumerate(y_tag):
-                mat[i, j] =  count[(a, b)] 
-        return mat
+                mat[j, i] =  count[(a, b)] 
+        return mat, count
 
     def accuracy(self, answer, acc='acc.txt'):
         A = open('phone.txt', 'w')

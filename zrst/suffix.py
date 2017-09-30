@@ -1,5 +1,4 @@
 import math
-
 from asr import *
 from zrst.asr import HTK
 
@@ -53,10 +52,10 @@ def flatten_pattern(input_dictionary, input_mlf, output_dictionary, output_mlf):
     F.writeDCT(output_dictionary, ['sil', 'sp'])
 
 
-def parse_pattern_load_count(input_mlf, input_dictionary):
-    temp_count = 'temp_count.txt'
-    temp_line = 'temp_line.txt'
-    N = 100
+def parse_pattern_load_count(input_mlf, input_dictionary, N=2):
+    mlfdir = os.path.split(input_mlf)[0]
+    temp_count = mlfdir+'/temp_count.txt'
+    temp_line = mlfdir+'/temp_line.txt'
     HTK().readMLF(input_mlf, ['sil', 'sp', '<s>', '</s>']).writeMLF(temp_line, ['lm'])
     os.system('ngram-count -text {} -write {} -order {} -vocab {}'.format(
         temp_line, temp_count, str(N), input_dictionary
@@ -83,7 +82,7 @@ def parse_pattern_load_count(input_mlf, input_dictionary):
     return count_dict
 
 
-def parse_pattern(input_dictionary, input_mlf, output_dictionary):
+def parse_pattern(input_dictionary, input_mlf, output_dictionary, N=2):
     def avg_dict(count_dict):
         tot_con, avg_con = 0, 0
         for phrase in count_dict:
@@ -109,7 +108,7 @@ def parse_pattern(input_dictionary, input_mlf, output_dictionary):
             H -= p * math.log(p, 2)
         return H
 
-    count_dict = parse_pattern_load_count(input_mlf, input_dictionary)
+    count_dict = parse_pattern_load_count(input_mlf, input_dictionary, N)
     cond_dict_tail = ({})
     cond_dict_head = ({})
     for phrase in count_dict:

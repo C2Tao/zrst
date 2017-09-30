@@ -1050,13 +1050,30 @@ class ASR(object):
         os.system('HParse "{}"  "{}" '.format(self.X['grmmri_dct'], self.X['wdneti_dct']))
         os.system('HParse "{}"  "{}" '.format(self.X['grmmrp_dct'], self.X['wdnetp_dct']))
 
-    def lexicon_setup(self):
+    def lexicon_flatten(self):
         # self.recognize_patterns()
         import suffix
         # suffix.flatten_pattern(self.X['dictry_dct'],self.X['result_mlf'],self.X['flattn_dct'],self.X['flattn_mlf'])
         # suffix.parse_pattern(self.X['flattn_dct'],self.X['flattn_mlf'],self.X['dictry_dct'])
         suffix.flatten_pattern(self.X['dictry_dct'], self.X['result_mlf'], self.X['dictry_dct'], self.X['result_mlf'])
-        suffix.parse_pattern(self.X['dictry_dct'], self.X['result_mlf'], self.X['dictry_dct'])
+
+        HTK() \
+            .readDCT(self.X['dictry_dct'], ['sil', 'sp']) \
+            .writeDCT(self.X['modeli_dct'], ['model', 'sil']) \
+            .writeDCT(self.X['modelp_dct'], ['model', 'sil', 'sp']) \
+            .writeDCT(self.X['grmmri_dct'], [self.sil_tag, 'sil']) \
+            .writeDCT(self.X['grmmrp_dct'], [self.sil_tag, 'sp', 'sil'])
+
+        os.system('HParse "{}"  "{}" '.format(self.X['grmmri_dct'], self.X['wdneti_dct']))
+        os.system('HParse "{}"  "{}" '.format(self.X['grmmrp_dct'], self.X['wdnetp_dct']))
+
+    def lexicon_setup(self, N=2):
+        # self.recognize_patterns()
+        import suffix
+        # suffix.flatten_pattern(self.X['dictry_dct'],self.X['result_mlf'],self.X['flattn_dct'],self.X['flattn_mlf'])
+        # suffix.parse_pattern(self.X['flattn_dct'],self.X['flattn_mlf'],self.X['dictry_dct'])
+        suffix.flatten_pattern(self.X['dictry_dct'], self.X['result_mlf'], self.X['dictry_dct'], self.X['result_mlf'])
+        suffix.parse_pattern(self.X['dictry_dct'], self.X['result_mlf'], self.X['dictry_dct'], N)
 
         HTK() \
             .readDCT(self.X['dictry_dct'], ['sil', 'sp']) \
@@ -1132,15 +1149,19 @@ class ASR(object):
         self.training('keepmix')
         self.lat_testing()
 
-    def x(self):
+    def x(self,N):
         self.feedback()
-        self.lexicon_setup()
+        self.lexicon_setup(N)
+        self.testing()
+    
+    def x_flatten(self):
+        self.lexicon_flatten()
         self.testing()
 
-    def ax(self):
+    def ax(self,N):
         self.feedback()
         self.training()
-        self.lexicon_setup()
+        self.lexicon_setup(N)
         self.testing()
 
     '''
